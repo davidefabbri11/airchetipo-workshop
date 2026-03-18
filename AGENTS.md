@@ -93,7 +93,7 @@ const { data } = await supabase.storage.from("bucket").upload("path", file);
 - `DATABASE_URL` — Supabase PostgreSQL connection string (for Prisma)
   - Go to **Supabase Dashboard → Project Settings → Database → Connection string**
   - Select **Session Pooler** as connection method (not Direct — incompatible with IPv4)
-  - Copy the connection string (port `6543`, `pooler.supabase.com`)
+  - Copy the connection string
 
 ## AIRchetipo Skills — Boilerplate Constraints
 
