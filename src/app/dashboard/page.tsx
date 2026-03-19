@@ -1,17 +1,16 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function Dashboard() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/signin");
 
-  const name = user?.user_metadata?.full_name ?? user?.email ?? "User";
-  const email = user?.email ?? "";
-  const avatarUrl = user?.user_metadata?.avatar_url ?? "";
+  const name = user.name ?? user.email ?? "User";
+  const email = user.email ?? "";
+  const avatarUrl = user.image ?? "";
   const initials = name
     .split(" ")
     .map((n: string) => n[0])

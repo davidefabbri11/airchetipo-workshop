@@ -1,18 +1,15 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/user";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
       <h1 className="text-4xl font-bold">AIRchetipo Workshop</h1>
       {user ? (
         <div className="flex flex-col items-center gap-4">
-          <p>Welcome, {user.user_metadata?.full_name ?? user.email}!</p>
+          <p>Welcome, {user.name ?? user.email}!</p>
           <div className="flex gap-4">
             <Link
               href="/dashboard"
