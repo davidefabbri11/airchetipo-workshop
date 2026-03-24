@@ -45,6 +45,10 @@ echo "Pushing to new remote..."
 git push -u origin main
 
 echo ""
+echo "Installing AIRchetipo skills..."
+curl -fsSL https://raw.githubusercontent.com/techreloaded-ar/AIRchetipo/main/install.sh | bash
+
+echo ""
 echo "Done! Your project is ready in './$PROJECT_DIR'"
 echo "Remote origin is now: $REMOTE_URL"
 echo ""
