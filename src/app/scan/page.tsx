@@ -62,19 +62,30 @@ export default function ScanPage() {
   // ------- File processing -------
 
   const processFile = useCallback(async (rawFile: File) => {
-    const originalSize = rawFile.size;
-    const compressed = await compressImage(rawFile);
-    const objectUrl = URL.createObjectURL(compressed);
-    const filename = rawFile.name || `foto_${new Date().toISOString().slice(0, 10)}.jpg`;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (rawFile.size > MAX_FILE_SIZE) {
+      toast.error("Il file supera i 10 MB. Scegli un'immagine più leggera.");
+      return;
+    }
 
-    setPreview({
-      file: compressed,
-      objectUrl,
-      originalSize,
-      compressedSize: compressed.size,
-      filename,
-    });
-    setState("preview");
+    try {
+      const originalSize = rawFile.size;
+      const compressed = await compressImage(rawFile);
+      const objectUrl = URL.createObjectURL(compressed);
+      const filename = rawFile.name || `foto_${new Date().toISOString().slice(0, 10)}.jpg`;
+
+      setPreview({
+        file: compressed,
+        objectUrl,
+        originalSize,
+        compressedSize: compressed.size,
+        filename,
+      });
+      setState("preview");
+    } catch {
+      toast.error("Errore durante la compressione dell'immagine. Riprova.");
+      setState("idle");
+    }
   }, []);
 
   // ------- Actions -------
@@ -179,7 +190,7 @@ export default function ScanPage() {
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png"
         capture="environment"
         className="sr-only"
         onChange={handleFileChange}

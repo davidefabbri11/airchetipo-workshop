@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 export const mealCreateSchema = z.object({
-  imageUrl: z.string().min(1, "Il percorso dell'immagine è obbligatorio"),
+  imageUrl: z
+    .string()
+    .min(1, "Il percorso dell'immagine è obbligatorio")
+    .url("L'URL dell'immagine non è valido"),
 });
 
 export type MealCreateInput = z.infer<typeof mealCreateSchema>;

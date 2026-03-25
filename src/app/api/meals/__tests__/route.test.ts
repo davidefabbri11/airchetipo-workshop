@@ -44,8 +44,7 @@ const SUPABASE_USER_ID = "supabase-uuid-123";
 const DB_USER_ID = "db-uuid-456";
 const MEAL_ID = "meal-uuid-789";
 
-// imageUrl is now a storage path, not a public URL
-const validImagePath = "supabase-uuid-123/1711360000000.jpg";
+const validImagePath = "https://example.supabase.co/storage/v1/object/public/meals/supabase-uuid-123/1711360000000.jpg";
 
 const dbUser = {
   id: DB_USER_ID,
@@ -173,18 +172,22 @@ describe("POST /api/meals", () => {
 // mealCreateSchema — validazione schema Zod
 // ===========================================================================
 describe("mealCreateSchema", () => {
-  it("dovrebbe superare la validazione con un path di storage valido", () => {
+  it("dovrebbe superare la validazione con un URL valido", () => {
     const result = mealCreateSchema.safeParse({
-      imageUrl: "supabase-uuid-123/1711360000000.jpg",
+      imageUrl: "https://example.supabase.co/storage/v1/object/public/meals/user-id/image.jpg",
     });
 
     expect(result.success).toBe(true);
   });
 
-  it("dovrebbe superare la validazione con qualsiasi stringa non vuota", () => {
+  it("dovrebbe fallire la validazione con un path non-URL", () => {
     const result = mealCreateSchema.safeParse({ imageUrl: "any/path/to/image" });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      expect(fieldErrors.imageUrl).toBeDefined();
+    }
   });
 
   it("dovrebbe fallire la validazione quando imageUrl è una stringa vuota", () => {
