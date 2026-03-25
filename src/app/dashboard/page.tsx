@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/user";
+import { getCurrentUserWithProfile } from "@/lib/user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function Dashboard() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserWithProfile();
   if (!user) redirect("/auth/signin");
+  if (!user.profile) redirect("/onboarding");
 
   const name = user.name ?? user.email ?? "User";
   const email = user.email ?? "";
