@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -16,6 +17,7 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   profile    Profile?
+  meals      Meal[]
 
   @@map("users")
 }
@@ -32,6 +34,54 @@ enum Goal {
   GAIN_MUSCLE
   REDUCE_FAT
   MAINTAIN
+}
+
+enum MealStatus {
+  PENDING
+  ANALYZED
+}
+
+enum AdequacyLevel {
+  ADEQUATE
+  EXCESSIVE
+  INSUFFICIENT
+}
+
+model Meal {
+  id                        String          @id @default(uuid())
+  userId                    String
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl                  String
+  status                    MealStatus      @default(PENDING)
+  analyzedAt                DateTime?
+  totalCalories             Float?
+  totalProteins             Float?
+  totalCarbs                Float?
+  totalFats                 Float?
+  adequacy                  AdequacyLevel?
+  consumptionFrequency      String?
+  remainingBudgetAtAnalysis Int?
+  components                MealComponent[]
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+
+  @@map("meals")
+}
+
+model MealComponent {
+  id               String  @id @default(uuid())
+  mealId           String
+  meal             Meal    @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  name             String
+  estimatedGrams   Float
+  calories         Float
+  proteins         Float
+  carbs            Float
+  fats             Float
+  openFoodFactsId  String?
+  createdAt        DateTime @default(now())
+
+  @@map("meal_components")
 }
 
 model Profile {

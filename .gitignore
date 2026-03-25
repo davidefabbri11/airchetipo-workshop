@@ -16,3 +16,4 @@ prisma/migrations
 .opencode/
 .github/
 .gemini/
+.env*.local
