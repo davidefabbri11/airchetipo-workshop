@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { AVAILABLE_CUISINES } from "@/lib/constants/cuisines";
+
+const CUISINE_IDS = AVAILABLE_CUISINES.map((c) => c.id) as [string, ...string[]];
 
 export const profileSchema = z.object({
   height: z
@@ -20,6 +23,9 @@ export const profileSchema = z.object({
   goal: z.enum(["LOSE_WEIGHT", "GAIN_MUSCLE", "REDUCE_FAT", "MAINTAIN"], {
     error: "L'obiettivo è obbligatorio",
   }),
+  cuisines: z
+    .array(z.enum(CUISINE_IDS))
+    .min(1, "Seleziona almeno una cucina"),
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;

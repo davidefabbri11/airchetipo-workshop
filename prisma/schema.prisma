@@ -45,6 +45,7 @@ model Profile {
   goal             Goal
   targetCalories   Int?
   goalDescription  String?
+  cuisines         String[]      @default([])
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 

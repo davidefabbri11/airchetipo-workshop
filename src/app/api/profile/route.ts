@@ -78,6 +78,7 @@ export async function POST(request: Request) {
       age: result.data.age,
       activityLevel: result.data.activityLevel,
       goal: result.data.goal,
+      cuisines: result.data.cuisines,
     },
   });
 
