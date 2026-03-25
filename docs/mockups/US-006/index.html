@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scansiona Pasto — MagnAI</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ============================================================
+       SCAN PAGE — /scan
+       Two-column layout: upload area (main) + side panel
+       States: empty, file-selected, previewing
+       ============================================================ */
+
+    .scan-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    /* ---- UPLOAD ZONE ---- */
+    .upload-zone {
+      background: var(--color-white);
+      border: 2px dashed var(--color-gray-300);
+      border-radius: var(--radius-2xl);
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-zone:hover,
+    .upload-zone--dragover {
+      border-color: var(--color-amber);
+      background: var(--color-cream-warm);
+      box-shadow: var(--shadow-glow-amber);
+    }
+
+    .upload-zone__bg-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--color-gray-200) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.5;
+      transition: opacity var(--duration-normal) var(--ease-out);
+      pointer-events: none;
+    }
+
+    .upload-zone:hover .upload-zone__bg-pattern,
+    .upload-zone--dragover .upload-zone__bg-pattern {
+      opacity: 0.2;
+    }
+
+    .upload-zone__content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: var(--space-12) var(--space-8);
+    }
+
+    .upload-zone__icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--color-sage-muted), var(--color-cream-dark));
+      border-radius: var(--radius-2xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-6);
+      transition: all var(--duration-normal) var(--ease-out);
+      animation: float 5s ease-in-out infinite;
+    }
+
+    .upload-zone__icon svg {
+      width: 36px;
+      height: 36px;
+      color: var(--color-forest);
+      opacity: 0.7;
+    }
+
+    .upload-zone:hover .upload-zone__icon {
+      background: linear-gradient(135deg, var(--color-amber-light), var(--color-amber));
+      transform: scale(1.05);
+      animation: none;
+    }
+
+    .upload-zone:hover .upload-zone__icon svg {
+      color: var(--color-forest-dark);
+      opacity: 1;
+    }
+
+    .upload-zone__title {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      color: var(--color-forest);
+      margin-bottom: var(--space-2);
+      line-height: var(--leading-snug);
+    }
+
+    .upload-zone__desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-bottom: var(--space-6);
+    }
+
+    .upload-zone__desc strong {
+      color: var(--color-amber-dark);
+    }
+
+    .upload-zone__actions {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Hidden file input */
+    .upload-zone__input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    /* Click-through overlay so only the btn covers the input */
+    .upload-zone__input--browse {
+      position: static;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      position: absolute;
+    }
+
+    /* ---- PREVIEW STATE ---- */
+    .upload-preview {
+      display: none;
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-default);
+      overflow: hidden;
+    }
+
+    .upload-preview--visible { display: block; }
+
+    .upload-preview__image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, var(--color-forest-dark) 0%, var(--color-forest) 40%, rgba(212,168,83,0.2) 100%);
+    }
+
+    .upload-preview__image-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, var(--color-forest-dark) 0%, var(--color-forest-light) 60%, rgba(212,168,83,0.15) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative circles to simulate a food photo */
+    .preview-food-illustration {
+      position: relative;
+      width: 220px;
+      height: 220px;
+    }
+
+    .preview-food-illustration__plate {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f5ece0, #e8d8c4);
+      position: absolute;
+      top: 10px; left: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .preview-food-illustration__sausage {
+      position: absolute;
+      top: 55px; left: 40px;
+      width: 110px; height: 44px;
+      background: linear-gradient(135deg, #c96b45, #a84e2e);
+      border-radius: 22px;
+      transform: rotate(-15deg);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+
+    .preview-food-illustration__fries {
+      position: absolute;
+      bottom: 40px; right: 32px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .preview-food-illustration__fry {
+      width: 10px;
+      height: 52px;
+      background: linear-gradient(180deg, #e8c574, #d4a853);
+      border-radius: 5px;
+      transform-origin: bottom;
+    }
+
+    .preview-food-illustration__fry:nth-child(1) { transform: rotate(-8deg); height: 48px; }
+    .preview-food-illustration__fry:nth-child(2) { transform: rotate(3deg); height: 56px; }
+    .preview-food-illustration__fry:nth-child(3) { transform: rotate(-5deg); height: 50px; }
+    .preview-food-illustration__fry:nth-child(4) { transform: rotate(6deg); height: 44px; }
+
+    .preview-food-illustration__scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--color-amber), transparent);
+      animation: scanLine 3s ease-in-out infinite;
+    }
+
+    .upload-preview__toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .upload-preview__filename {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .upload-preview__filename-icon {
+      width: 36px; height: 36px;
+      background: var(--color-sage-muted);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .upload-preview__filename-icon svg {
+      width: 18px; height: 18px;
+      color: var(--color-forest);
+    }
+
+    .upload-preview__filename-text {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .upload-preview__filename-size {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .upload-preview__cta {
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    /* AI confidence indicator */
+    .ai-confidence {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-cream-warm);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-amber);
+    }
+
+    .ai-confidence__icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .ai-confidence__text {
+      flex: 1;
+    }
+
+    .ai-confidence__label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-amber-dark);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wider);
+      margin-bottom: 3px;
+    }
+
+    .ai-confidence__bar {
+      height: 5px;
+      background: var(--color-gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .ai-confidence__bar-fill {
+      height: 100%;
+      width: 82%;
+      background: linear-gradient(90deg, var(--color-amber-dark), var(--color-amber-light));
+      border-radius: var(--radius-full);
+      animation: progressFill 1.2s var(--ease-out) both;
+      animation-delay: 200ms;
+    }
+
+    .ai-confidence__value {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-amber-dark);
+      flex-shrink: 0;
+    }
+
+    /* Analyze CTA button — large, prominent */
+    .analyze-btn {
+      width: 100%;
+      padding: var(--space-5) var(--space-8);
+      background: linear-gradient(135deg, var(--color-forest), var(--color-forest-light));
+      color: var(--color-cream);
+      border: none;
+      border-radius: var(--radius-xl);
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      letter-spacing: var(--tracking-tight);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      transition: all var(--duration-normal) var(--ease-out);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .analyze-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transition: left var(--duration-slower) var(--ease-out);
+    }
+
+    .analyze-btn:hover::before { left: 100%; }
+
+    .analyze-btn:hover {
+      background: linear-gradient(135deg, var(--color-forest-light), var(--color-forest));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl), var(--shadow-glow-amber);
+    }
+
+    .analyze-btn:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-md);
+    }
+
+    .analyze-btn svg {
+      width: 24px; height: 24px;
+      color: var(--color-amber);
+    }
+
+    .analyze-btn__sub {
+      font-family: var(--font-body);
+      font-size: var(--text-xs);
+      color: var(--color-sage-light);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .upload-preview__change {
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .upload-preview__change a {
+      color: var(--color-forest);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* ---- CAMERA CAPTURE SECTION ---- */
+    .camera-capture {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-default);
+      padding: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      transition: all var(--duration-normal) var(--ease-out);
+      cursor: pointer;
+    }
+
+    .camera-capture:hover {
+      border-color: var(--color-forest);
+      box-shadow: var(--shadow-md);
+    }
+
+    .camera-capture__icon {
+      width: 52px; height: 52px;
+      background: var(--color-forest);
+      border-radius: var(--radius-xl);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .camera-capture__icon svg {
+      width: 24px; height: 24px;
+      color: var(--color-amber);
+    }
+
+    .camera-capture__text { flex: 1; }
+
+    .camera-capture__title {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .camera-capture__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .camera-capture__badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--color-sage-muted);
+      color: var(--color-forest);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- DIVIDER WITH TEXT ---- */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      letter-spacing: var(--tracking-wider);
+      text-transform: uppercase;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-default);
+    }
+
+    /* ---- RIGHT SIDE PANEL ---- */
+    .scan-side {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+      position: sticky;
+      top: var(--space-8);
+    }
+
+    /* How it works card */
+    .how-it-works {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .how-it-works__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .how-it-works__title svg {
+      width: 20px; height: 20px;
+      color: var(--color-amber-dark);
+    }
+
+    .how-step {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .how-step + .how-step { border-top: 1px solid var(--color-gray-100); }
+
+    .how-step__num {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      color: var(--color-cream);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      flex-shrink: 0;
+      font-family: var(--font-display);
+    }
+
+    .how-step__body {}
+
+    .how-step__label {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .how-step__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      line-height: var(--leading-relaxed);
+      margin: 0;
+    }
+
+    /* Tips card */
+    .photo-tips {
+      background: linear-gradient(135deg, var(--color-cream-warm), var(--color-cream-dark));
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      border: 1px solid var(--color-amber);
+      border-left: 4px solid var(--color-amber);
+    }
+
+    .photo-tips__title {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--color-amber-dark);
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .photo-tip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      padding: var(--space-1) 0;
+    }
+
+    .photo-tip svg {
+      width: 14px; height: 14px;
+      color: var(--color-success);
+      flex-shrink: 0;
+    }
+
+    /* Recent scans */
+    .recent-scans {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .recent-scans__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .recent-scans__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+    }
+
+    .recent-scans__view-all {
+      font-size: var(--text-xs);
+      color: var(--color-forest);
+      font-weight: 500;
+    }
+
+    .recent-scan-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .recent-scan-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out);
+      text-decoration: none;
+    }
+
+    .recent-scan-item:hover {
+      background: var(--color-gray-100);
+    }
+
+    .recent-scan-item__thumb {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .recent-scan-item__thumb--1 { background: linear-gradient(135deg, #fef3e0, #fde8d0); }
+    .recent-scan-item__thumb--2 { background: linear-gradient(135deg, #e8f5ec, #d0f0d8); }
+    .recent-scan-item__thumb--3 { background: linear-gradient(135deg, #fde8e4, #f5d0cc); }
+
+    .recent-scan-item__info { flex: 1; min-width: 0; }
+
+    .recent-scan-item__name {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .recent-scan-item__meta {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .recent-scan-item__cal {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-forest);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 1200px) {
+      .scan-layout { grid-template-columns: 1fr 340px; }
+    }
+
+    @media (max-width: 1024px) {
+      .scan-layout { grid-template-columns: 1fr; }
+      .scan-side {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        position: static;
+      }
+      .recent-scans { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 640px) {
+      .scan-side { grid-template-columns: 1fr; }
+      .upload-zone__actions { flex-direction: column; }
+      .camera-capture { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="app-sidebar">
+    <a href="index.html" class="app-sidebar__logo">
+      <div class="app-sidebar__logo-icon">🍽</div>
+      <div class="app-sidebar__logo-text">Magn<span>AI</span></div>
+    </a>
+    <nav class="app-sidebar__nav">
+      <a href="#" class="app-sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="index.html" class="app-sidebar__link app-sidebar__link--active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scansiona
+      </a>
+      <a href="analysis.html" class="app-sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Ultime Analisi
+      </a>
+      <a href="#" class="app-sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano Settimanale
+      </a>
+      <div class="app-sidebar__section-title">Account</div>
+      <a href="#" class="app-sidebar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </a>
+    </nav>
+    <div class="app-sidebar__footer">
+      <div class="app-sidebar__user">
+        <div class="app-sidebar__avatar">M</div>
+        <div class="app-sidebar__user-info">
+          <div class="app-sidebar__user-name">Marco Ferretti</div>
+          <div class="app-sidebar__user-email">marco@email.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Bar Mobile -->
+  <div class="app-bottombar">
+    <nav class="app-bottombar__nav">
+      <a href="#" class="app-bottombar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Home
+      </a>
+      <a href="#" class="app-bottombar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano
+      </a>
+      <a href="index.html" class="app-bottombar__link app-bottombar__link--scan app-bottombar__link--active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </a>
+      <a href="analysis.html" class="app-bottombar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analisi
+      </a>
+      <a href="#" class="app-bottombar__link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profilo
+      </a>
+    </nav>
+  </div>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="app-main">
+    <!-- Page Header -->
+    <div class="app-main__header animate-fadeInUp">
+      <h1 class="app-main__title">Scansiona il Pasto</h1>
+      <p class="app-main__subtitle">Carica o scatta una foto — l'AI identificherà ogni componente e stimerà calorie e macros</p>
+    </div>
+
+    <div class="scan-layout">
+
+      <!-- ========== LEFT COLUMN — Upload & Camera ========== -->
+      <div style="display: flex; flex-direction: column; gap: var(--space-5);">
+
+        <!-- STATE 1: Empty upload zone (shown by default) -->
+        <div class="upload-zone animate-fadeInUp delay-1" id="uploadZone">
+          <div class="upload-zone__bg-pattern"></div>
+          <!-- Hidden file input covers entire zone -->
+          <input
+            type="file"
+            accept="image/*"
+            class="upload-zone__input"
+            id="fileInput"
+            onchange="handleFileSelect(event)"
+          />
+          <div class="upload-zone__content">
+            <div class="upload-zone__icon">
+              <!-- Upload cloud icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 16 12 12 8 16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <h3 class="upload-zone__title">Trascina qui la foto del piatto</h3>
+            <p class="upload-zone__desc">
+              Supporta JPG, PNG, WEBP fino a 20 MB<br>
+              <strong>Maggiore la qualità, più precise le stime</strong>
+            </p>
+            <div class="upload-zone__actions">
+              <label for="fileInput" class="btn btn--primary btn--lg" style="pointer-events: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Scegli file
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATE 2: Image selected — preview + analyze CTA -->
+        <div class="upload-preview upload-preview--visible animate-scaleIn" id="uploadPreview">
+
+          <!-- Image preview (simulated) -->
+          <div class="upload-preview__image-placeholder">
+            <div class="preview-food-illustration">
+              <div class="preview-food-illustration__plate"></div>
+              <div class="preview-food-illustration__sausage"></div>
+              <div class="preview-food-illustration__fries">
+                <div class="preview-food-illustration__fry"></div>
+                <div class="preview-food-illustration__fry"></div>
+                <div class="preview-food-illustration__fry"></div>
+                <div class="preview-food-illustration__fry"></div>
+              </div>
+              <div class="preview-food-illustration__scan-line"></div>
+            </div>
+            <!-- Overlaid corner brackets (like viewfinder) -->
+            <div style="position:absolute;inset:32px;pointer-events:none;">
+              <div style="position:absolute;top:0;left:0;width:36px;height:36px;">
+                <div style="position:absolute;top:0;left:0;width:36px;height:3px;background:var(--color-amber);border-radius:2px;"></div>
+                <div style="position:absolute;top:0;left:0;width:3px;height:36px;background:var(--color-amber);border-radius:2px;"></div>
+              </div>
+              <div style="position:absolute;top:0;right:0;width:36px;height:36px;">
+                <div style="position:absolute;top:0;right:0;width:36px;height:3px;background:var(--color-amber);border-radius:2px;"></div>
+                <div style="position:absolute;top:0;right:0;width:3px;height:36px;background:var(--color-amber);border-radius:2px;"></div>
+              </div>
+              <div style="position:absolute;bottom:0;left:0;width:36px;height:36px;">
+                <div style="position:absolute;bottom:0;left:0;width:36px;height:3px;background:var(--color-amber);border-radius:2px;"></div>
+                <div style="position:absolute;bottom:0;left:0;width:3px;height:36px;background:var(--color-amber);border-radius:2px;"></div>
+              </div>
+              <div style="position:absolute;bottom:0;right:0;width:36px;height:36px;">
+                <div style="position:absolute;bottom:0;right:0;width:36px;height:3px;background:var(--color-amber);border-radius:2px;"></div>
+                <div style="position:absolute;bottom:0;right:0;width:3px;height:36px;background:var(--color-amber);border-radius:2px;"></div>
+              </div>
+            </div>
+            <!-- Status badge overlay -->
+            <div style="position:absolute;top:16px;left:16px;display:flex;gap:8px;">
+              <span class="badge" style="background:rgba(0,0,0,0.55);color:white;border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(8px);">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Immagine caricata
+              </span>
+            </div>
+            <div style="position:absolute;top:16px;right:16px;font-size:var(--text-xs);color:rgba(255,255,255,0.65);background:rgba(0,0,0,0.45);padding:4px 12px;border-radius:var(--radius-full);backdrop-filter:blur(8px);">
+              2,4 MB · JPG
+            </div>
+          </div>
+
+          <!-- File info toolbar -->
+          <div class="upload-preview__toolbar">
+            <div class="upload-preview__filename">
+              <div class="upload-preview__filename-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div>
+                <div class="upload-preview__filename-text">pranzo_wurstel_patatine.jpg</div>
+                <div class="upload-preview__filename-size">2,4 MB · 3024 × 2268px</div>
+              </div>
+            </div>
+            <button class="btn btn--ghost btn--sm" onclick="resetUpload()" style="color:var(--color-terracotta);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Rimuovi
+            </button>
+          </div>
+
+          <!-- AI image quality assessment + Analyze CTA -->
+          <div class="upload-preview__cta">
+            <!-- AI pre-scan confidence -->
+            <div class="ai-confidence">
+              <span class="ai-confidence__icon">✨</span>
+              <div class="ai-confidence__text">
+                <div class="ai-confidence__label">Qualità immagine per AI</div>
+                <div class="ai-confidence__bar">
+                  <div class="ai-confidence__bar-fill"></div>
+                </div>
+              </div>
+              <span class="ai-confidence__value">Ottima</span>
+            </div>
+
+            <!-- Main CTA -->
+            <button class="analyze-btn" onclick="location.href='analysis.html'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 1 0 10 10"/>
+                <path d="M12 8v4l3 3"/>
+                <path d="M18 2l4 4-4 4"/>
+                <path d="M22 6H18"/>
+              </svg>
+              Analizza con AI
+            </button>
+            <div class="analyze-btn__sub">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Analisi tramite OpenRouter Vision · incrociata con Open Food Facts
+            </div>
+
+            <div class="upload-preview__change">
+              Foto sbagliata? <a href="#" onclick="resetUpload();return false;">Carica un'altra immagine</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- OR DIVIDER ---- -->
+        <div class="or-divider animate-fadeInUp delay-2">oppure</div>
+
+        <!-- ---- CAMERA CAPTURE ---- -->
+        <div class="camera-capture animate-fadeInUp delay-2">
+          <div class="camera-capture__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <div class="camera-capture__text">
+            <div class="camera-capture__title">Scatta una foto con la fotocamera</div>
+            <p class="camera-capture__desc">Usa la fotocamera del dispositivo per catturare il piatto direttamente</p>
+          </div>
+          <span class="camera-capture__badge">Mobile</span>
+        </div>
+
+      </div><!-- end left col -->
+
+      <!-- ========== RIGHT COLUMN — Side panel ========== -->
+      <div class="scan-side">
+
+        <!-- How it works -->
+        <div class="how-it-works animate-fadeInUp delay-3">
+          <h4 class="how-it-works__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Come funziona
+          </h4>
+          <div class="how-step">
+            <div class="how-step__num">1</div>
+            <div class="how-step__body">
+              <div class="how-step__label">Carica la foto</div>
+              <p class="how-step__desc">Trascina o scegli un'immagine del piatto. Più è nitida, più precisa sarà l'analisi.</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="how-step__num">2</div>
+            <div class="how-step__body">
+              <div class="how-step__label">Analisi AI Vision</div>
+              <p class="how-step__desc">OpenRouter invia l'immagine a un modello multimodale che identifica ogni componente del piatto.</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="how-step__num">3</div>
+            <div class="how-step__body">
+              <div class="how-step__label">Validazione Open Food Facts</div>
+              <p class="how-step__desc">Le stime AI vengono incrociate con il database nutrizionale per maggiore accuratezza.</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="how-step__num">4</div>
+            <div class="how-step__body">
+              <div class="how-step__label">Risultati &amp; Storico</div>
+              <p class="how-step__desc">Vedi calorie e macros per ogni componente e salva il pasto nel tuo storico.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo tips -->
+        <div class="photo-tips animate-fadeInUp delay-4">
+          <div class="photo-tips__title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Consigli per la foto
+          </div>
+          <div class="photo-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Luce naturale o ambiente ben illuminato
+          </div>
+          <div class="photo-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Inquadra il piatto dall'alto mostrando tutto
+          </div>
+          <div class="photo-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Rimuovi coperchi e confezioni
+          </div>
+          <div class="photo-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Evita sfondi disordinati
+          </div>
+        </div>
+
+        <!-- Recent scans -->
+        <div class="recent-scans animate-fadeInUp delay-5">
+          <div class="recent-scans__header">
+            <h4 class="recent-scans__title">Scansioni recenti</h4>
+            <a href="#" class="recent-scans__view-all">Vedi tutte →</a>
+          </div>
+          <div class="recent-scan-list">
+            <a href="analysis.html" class="recent-scan-item">
+              <div class="recent-scan-item__thumb recent-scan-item__thumb--1">🍝</div>
+              <div class="recent-scan-item__info">
+                <div class="recent-scan-item__name">Pasta al pesto con parmigiano</div>
+                <div class="recent-scan-item__meta">Ieri · Pranzo</div>
+              </div>
+              <div class="recent-scan-item__cal">467 kcal</div>
+            </a>
+            <a href="analysis.html" class="recent-scan-item">
+              <div class="recent-scan-item__thumb recent-scan-item__thumb--2">🥗</div>
+              <div class="recent-scan-item__info">
+                <div class="recent-scan-item__name">Insalata mista con tonno</div>
+                <div class="recent-scan-item__meta">2 giorni fa · Cena</div>
+              </div>
+              <div class="recent-scan-item__cal">320 kcal</div>
+            </a>
+            <a href="analysis.html" class="recent-scan-item">
+              <div class="recent-scan-item__thumb recent-scan-item__thumb--3">🥩</div>
+              <div class="recent-scan-item__info">
+                <div class="recent-scan-item__name">Bistecca con verdure grigliate</div>
+                <div class="recent-scan-item__meta">3 giorni fa · Cena</div>
+              </div>
+              <div class="recent-scan-item__cal">520 kcal</div>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- end right col -->
+
+    </div><!-- end scan-layout -->
+  </main>
+
+  <script>
+    // Drag-and-drop behavior on upload zone
+    const uploadZone = document.getElementById('uploadZone');
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('upload-zone--dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('upload-zone--dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('upload-zone--dragover');
+      // In a real app: process e.dataTransfer.files[0]
+      // For mockup: just show the preview
+      showPreview();
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        showPreview();
+      }
+    }
+
+    function showPreview() {
+      document.getElementById('uploadZone').style.display = 'none';
+      document.getElementById('uploadPreview').classList.add('upload-preview--visible');
+    }
+
+    function resetUpload() {
+      document.getElementById('uploadPreview').classList.remove('upload-preview--visible');
+      document.getElementById('uploadZone').style.display = '';
+      document.getElementById('fileInput').value = '';
+    }
+  </script>
+</body>
+</html>
