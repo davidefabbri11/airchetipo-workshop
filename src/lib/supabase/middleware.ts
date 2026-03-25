@@ -38,7 +38,7 @@ export async function updateSession(request: NextRequest) {
   // Protect authenticated-only routes
   if (
     !user &&
-    (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding") || pathname.startsWith("/goals"))
+    (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding") || pathname.startsWith("/goals") || pathname.startsWith("/scan"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/signin";

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextResponse } from "next/server";
+import { profileSchema } from "@/lib/validations/profile";
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks (vi.hoisted ensures these are available before vi.mock)
@@ -48,6 +49,7 @@ const validProfileData = {
   age: 30,
   activityLevel: "MODERATE" as const,
   goal: "GAIN_MUSCLE" as const,
+  cuisines: ["ITALIAN", "JAPANESE"],
 };
 
 const dbUserWithoutProfile = {
@@ -110,6 +112,7 @@ describe("POST /api/profile", () => {
         age: validProfileData.age,
         activityLevel: validProfileData.activityLevel,
         goal: validProfileData.goal,
+        cuisines: validProfileData.cuisines,
       },
     });
   });
@@ -207,5 +210,111 @@ describe("GET /api/profile", () => {
     expect(response.status).toBe(401);
     expect(body.error).toBe("Non autenticato");
     expect(mockUserFindUnique).not.toHaveBeenCalled();
+  });
+});
+
+// ===========================================================================
+// profileSchema — cuisines field validation
+// ===========================================================================
+describe("profileSchema — cuisines", () => {
+  const validBase = {
+    height: 175,
+    weight: 70,
+    age: 30,
+    activityLevel: "MODERATE" as const,
+    goal: "GAIN_MUSCLE" as const,
+  };
+
+  it("dovrebbe fallire la validazione quando cuisines è un array vuoto", () => {
+    const result = profileSchema.safeParse({ ...validBase, cuisines: [] });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      expect(fieldErrors.cuisines).toBeDefined();
+    }
+  });
+
+  it("dovrebbe superare la validazione quando cuisines ha un elemento", () => {
+    const result = profileSchema.safeParse({
+      ...validBase,
+      cuisines: ["ITALIAN"],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("dovrebbe fallire la validazione quando cuisines è assente", () => {
+    const result = profileSchema.safeParse({ ...validBase });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      expect(fieldErrors.cuisines).toBeDefined();
+    }
+  });
+});
+
+// ===========================================================================
+// POST /api/profile — cuisines field (API route)
+// ===========================================================================
+describe("POST /api/profile — cuisines", () => {
+  const validProfileWithCuisines = {
+    height: 175,
+    weight: 70,
+    age: 30,
+    activityLevel: "MODERATE" as const,
+    goal: "GAIN_MUSCLE" as const,
+    cuisines: ["ITALIAN", "JAPANESE"],
+  };
+
+  it("dovrebbe restituire 400 quando cuisines è assente nel body", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: SUPABASE_USER_ID } } });
+    mockUserFindUnique.mockResolvedValue(dbUserWithoutProfile);
+
+    const bodyWithoutCuisines = {
+      height: 175,
+      weight: 70,
+      age: 30,
+      activityLevel: "MODERATE",
+      goal: "GAIN_MUSCLE",
+    };
+    const response = await POST(makeRequest(bodyWithoutCuisines));
+    const body = await jsonResponse(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Dati non validi");
+    expect(body.details).toBeDefined();
+    expect(body.details.cuisines).toBeDefined();
+    expect(mockProfileCreate).not.toHaveBeenCalled();
+  });
+
+  it("dovrebbe creare un profilo con cuisines valide e restituire 201", async () => {
+    const createdProfile = {
+      id: "profile-uuid-789",
+      userId: DB_USER_ID,
+      ...validProfileWithCuisines,
+    };
+
+    mockGetUser.mockResolvedValue({ data: { user: { id: SUPABASE_USER_ID } } });
+    mockUserFindUnique.mockResolvedValue(dbUserWithoutProfile);
+    mockProfileCreate.mockResolvedValue(createdProfile);
+
+    const response = await POST(makeRequest(validProfileWithCuisines));
+    const body = await jsonResponse(response);
+
+    expect(response.status).toBe(201);
+    expect(body.cuisines).toEqual(["ITALIAN", "JAPANESE"]);
+    expect(mockProfileCreate).toHaveBeenCalledWith({
+      data: {
+        userId: DB_USER_ID,
+        height: validProfileWithCuisines.height,
+        weight: validProfileWithCuisines.weight,
+        age: validProfileWithCuisines.age,
+        activityLevel: validProfileWithCuisines.activityLevel,
+        goal: validProfileWithCuisines.goal,
+        cuisines: validProfileWithCuisines.cuisines,
+      },
+    });
   });
 });

@@ -16,6 +16,8 @@ prisma/migrations
 .opencode/
 .github/
 .gemini/
+.env*.local
+
 /.idea/airchetipo-workshop.iml
 /.idea/misc.xml
 /.idea/modules.xml

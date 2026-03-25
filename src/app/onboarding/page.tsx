@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { profileSchema, type ProfileInput } from "@/lib/validations/profile";
 import { cn } from "@/lib/utils";
+import { AVAILABLE_CUISINES } from "@/lib/constants/cuisines";
 
 type ActivityLevel = ProfileInput["activityLevel"];
 type Goal = ProfileInput["goal"];
@@ -93,6 +94,9 @@ export default function OnboardingPage() {
   // Step 3
   const [goal, setGoal] = useState<Goal | null>(null);
 
+  // Step 4
+  const [cuisines, setCuisines] = useState<string[]>([]);
+
   // Errors
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -137,10 +141,20 @@ export default function OnboardingPage() {
     return true;
   }
 
+  function validateStep4(): boolean {
+    if (cuisines.length === 0) {
+      setErrors({ cuisines: "Seleziona almeno una cucina" });
+      return false;
+    }
+    setErrors({});
+    return true;
+  }
+
   function handleNext() {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
-    if (step < 3) {
+    if (step === 3 && !validateStep3()) return;
+    if (step < 4) {
       setStep(step + 1);
       setErrors({});
     }
@@ -154,7 +168,7 @@ export default function OnboardingPage() {
   }
 
   async function handleComplete() {
-    if (!validateStep3()) return;
+    if (!validateStep4()) return;
 
     const data: ProfileInput = {
       height: parseFloat(height),
@@ -162,6 +176,7 @@ export default function OnboardingPage() {
       age: parseInt(age, 10),
       activityLevel: activityLevel!,
       goal: goal!,
+      cuisines,
     };
 
     // Full validation
@@ -205,7 +220,7 @@ export default function OnboardingPage() {
       <div className="mx-auto flex w-full max-w-[680px] flex-1 flex-col px-6 py-8 md:px-6">
         {/* Progress bar */}
         <div className="mb-10 flex gap-2">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className={cn(
@@ -230,7 +245,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Passo 1 di 3
+                Passo 1 di 4
               </p>
               <h2 className="mb-2 text-3xl font-bold">
                 Raccontaci di te {"\u{1F4CF}"}
@@ -304,7 +319,7 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Passo 2 di 3
+                Passo 2 di 4
               </p>
               <h2 className="mb-2 text-3xl font-bold">
                 Quanto ti muovi? {"\u{1F3C3}"}
@@ -353,7 +368,7 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Passo 3 di 3
+                Passo 3 di 4
               </p>
               <h2 className="mb-2 text-3xl font-bold">
                 Qual &egrave; il tuo obiettivo? {"\u{1F3AF}"}
@@ -398,6 +413,86 @@ export default function OnboardingPage() {
               )}
             </div>
           )}
+
+          {/* ========== STEP 4 ========== */}
+          {step === 4 && (
+            <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Passo 4 di 4
+              </p>
+              <h2 className="mb-2 text-3xl font-bold">
+                Che cucina preferisci? {"\u{1F30D}"}
+              </h2>
+              <p className="mb-8 max-w-[500px] text-base text-muted-foreground">
+                Seleziona le cucine che ami &mdash; useremo queste preferenze
+                per generare suggerimenti alimentari in linea con i tuoi gusti.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {AVAILABLE_CUISINES.map((cuisine) => {
+                  const isSelected = cuisines.includes(cuisine.id);
+                  return (
+                    <button
+                      key={cuisine.id}
+                      type="button"
+                      onClick={() => {
+                        setCuisines((prev) =>
+                          isSelected
+                            ? prev.filter((id) => id !== cuisine.id)
+                            : [...prev, cuisine.id]
+                        );
+                        setErrors({});
+                      }}
+                      className={cn(
+                        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-5 py-3 text-sm font-medium transition-all hover:-translate-y-px hover:shadow-sm",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card hover:border-primary"
+                      )}
+                    >
+                      <span className="text-lg leading-none">{cuisine.emoji}</span>
+                      {cuisine.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selection counter */}
+              <div className="mt-6 flex items-center gap-3">
+                <span
+                  className={cn(
+                    "inline-flex h-7 min-w-[28px] items-center justify-center rounded-full px-2 text-sm font-bold transition-all",
+                    cuisines.length === 0
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-primary text-primary-foreground"
+                  )}
+                >
+                  {cuisines.length}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {cuisines.length === 0 ? (
+                    <>
+                      Seleziona <strong className="text-foreground">almeno 1</strong> cucina per procedere
+                    </>
+                  ) : (
+                    <>
+                      <strong className="text-foreground">{cuisines.length}</strong>{" "}
+                      {cuisines.length === 1 ? "cucina selezionata" : "cucine selezionate"}
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {errors.cuisines && (
+                <p className="mt-4 text-xs text-destructive">{errors.cuisines}</p>
+              )}
+
+              {/* Tip note */}
+              <div className="mt-6 rounded-lg border-l-[3px] border-l-amber-400 bg-amber-50 px-5 py-4 text-sm leading-relaxed text-muted-foreground dark:bg-amber-950/20">
+                💡 <strong className="text-foreground">Consiglio:</strong> Seleziona almeno 3 cucine per avere maggiore varietà nei suggerimenti.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Submit error */}
@@ -416,10 +511,10 @@ export default function OnboardingPage() {
           </Button>
 
           <span className="text-sm text-muted-foreground">
-            Passo {step} di 3
+            Passo {step} di 4
           </span>
 
-          {step < 3 ? (
+          {step < 4 ? (
             <Button onClick={handleNext}>Avanti {"\u2192"}</Button>
           ) : (
             <Button onClick={handleComplete} disabled={submitting}>
