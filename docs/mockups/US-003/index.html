@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>US-003 — Selezione Cucine di Interesse — MagnAI</title>
+  <link rel="stylesheet" href="../magnai/shared.css">
+  <style>
+    body {
+      background: var(--color-cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============ ONBOARDING LAYOUT ============ */
+    .onboarding {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+      width: 100%;
+    }
+
+    /* Top bar */
+    .onboarding__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .onboarding__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      text-decoration: none;
+    }
+
+    .onboarding__logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--color-forest);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .onboarding__logo-text {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-forest);
+    }
+
+    .onboarding__logo-text span { color: var(--color-amber); }
+
+    /* ============ PROGRESS BAR ============ */
+    .step-progress {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-10);
+    }
+
+    .step-progress__bar {
+      flex: 1;
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: var(--color-gray-200);
+      overflow: hidden;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .step-progress__bar--done {
+      background: var(--color-forest);
+    }
+
+    .step-progress__bar--active {
+      background: var(--color-gray-200);
+      position: relative;
+    }
+
+    .step-progress__bar--active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: var(--color-amber);
+      border-radius: var(--radius-full);
+      animation: progressPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes progressPulse {
+      0%, 100% { width: 40%; }
+      50% { width: 60%; }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============ STEP HEADER ============ */
+    .step__eyebrow {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-amber-dark);
+      margin-bottom: var(--space-3);
+    }
+
+    .step__title {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+    }
+
+    .step__desc {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-8);
+      max-width: 500px;
+    }
+
+    /* ============ CUISINE CHIPS (TOGGLE MULTI-SELECT) ============ */
+    .cuisine-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .cuisine-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-default);
+      background: var(--color-white);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .cuisine-chip:hover {
+      border-color: var(--color-forest);
+      background: var(--color-gray-100);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cuisine-chip--active {
+      border-color: var(--color-forest);
+      background: var(--color-forest);
+      color: var(--color-cream);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cuisine-chip--active:hover {
+      background: var(--color-forest-light);
+      border-color: var(--color-forest-light);
+    }
+
+    .cuisine-chip__emoji {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* ============ SELECTION COUNTER ============ */
+    .selection-counter {
+      margin-top: var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .selection-counter__badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 var(--space-2);
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      color: var(--color-cream);
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .selection-counter__badge--empty {
+      background: var(--color-gray-300);
+      color: var(--color-gray-600);
+    }
+
+    .selection-counter__text {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .selection-counter__text strong {
+      color: var(--text-primary);
+    }
+
+    /* ============ TIP NOTE ============ */
+    .cuisine-note {
+      margin-top: var(--space-6);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-cream-warm);
+      border-radius: var(--radius-lg);
+      border-left: 3px solid var(--color-amber);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+    }
+
+    /* ============ VALIDATION ERROR ============ */
+    .cuisine-error {
+      margin-top: var(--space-4);
+      font-size: var(--text-xs);
+      color: var(--color-danger);
+      display: none;
+    }
+
+    .cuisine-error--visible {
+      display: block;
+    }
+
+    /* ============ NAVIGATION BUTTONS ============ */
+    .onboarding__nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-10);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-default);
+    }
+
+    .onboarding__step-indicator {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .step__title {
+        font-size: var(--text-2xl);
+      }
+      .onboarding {
+        padding: var(--space-6) var(--space-4);
+      }
+      .cuisine-chips {
+        gap: var(--space-2);
+      }
+      .cuisine-chip {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--text-xs);
+      }
+      .cuisine-chip__emoji {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <div class="onboarding">
+    <!-- Top Bar -->
+    <div class="onboarding__top">
+      <a href="../magnai/index.html" class="onboarding__logo">
+        <div class="onboarding__logo-icon">&#x1F37D;</div>
+        <div class="onboarding__logo-text">Magn<span>AI</span></div>
+      </a>
+    </div>
+
+    <!-- Progress — 4 steps, first 3 done, step 4 active -->
+    <div class="step-progress">
+      <div class="step-progress__bar step-progress__bar--done" id="bar1"></div>
+      <div class="step-progress__bar step-progress__bar--done" id="bar2"></div>
+      <div class="step-progress__bar step-progress__bar--done" id="bar3"></div>
+      <div class="step-progress__bar step-progress__bar--active" id="bar4"></div>
+    </div>
+
+    <!-- ============ STEP 4 — Cucine di Interesse ============ -->
+    <div style="flex: 1; animation: fadeInUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both;">
+      <div class="step__eyebrow">Passo 4 di 4</div>
+      <h2 class="step__title">Che cucina preferisci? &#x1F30D;</h2>
+      <p class="step__desc">Seleziona le cucine che ami &mdash; useremo queste preferenze per generare suggerimenti alimentari in linea con i tuoi gusti.</p>
+
+      <!-- Cuisine chips — multi-select -->
+      <div class="cuisine-chips" id="cuisineChips">
+        <div class="cuisine-chip" data-value="ITALIAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EE;&#x1F1F9;</span> Italiana
+        </div>
+        <div class="cuisine-chip" data-value="MEDITERRANEAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1FAD2;</span> Mediterranea
+        </div>
+        <div class="cuisine-chip" data-value="JAPANESE" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EF;&#x1F1F5;</span> Giapponese
+        </div>
+        <div class="cuisine-chip" data-value="MEXICAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1F2;&#x1F1FD;</span> Messicana
+        </div>
+        <div class="cuisine-chip" data-value="INDIAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EE;&#x1F1F3;</span> Indiana
+        </div>
+        <div class="cuisine-chip" data-value="CHINESE" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1E8;&#x1F1F3;</span> Cinese
+        </div>
+        <div class="cuisine-chip" data-value="THAI" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1F9;&#x1F1ED;</span> Thailandese
+        </div>
+        <div class="cuisine-chip" data-value="GREEK" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EC;&#x1F1F7;</span> Greca
+        </div>
+        <div class="cuisine-chip" data-value="AMERICAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1FA;&#x1F1F8;</span> Americana
+        </div>
+        <div class="cuisine-chip" data-value="KOREAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1F0;&#x1F1F7;</span> Coreana
+        </div>
+        <div class="cuisine-chip" data-value="MIDDLE_EASTERN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F9C6;</span> Mediorientale
+        </div>
+        <div class="cuisine-chip" data-value="FRENCH" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EB;&#x1F1F7;</span> Francese
+        </div>
+        <div class="cuisine-chip" data-value="SPANISH" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1EA;&#x1F1F8;</span> Spagnola
+        </div>
+        <div class="cuisine-chip" data-value="BRAZILIAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1E7;&#x1F1F7;</span> Brasiliana
+        </div>
+        <div class="cuisine-chip" data-value="VIETNAMESE" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F1FB;&#x1F1F3;</span> Vietnamita
+        </div>
+        <div class="cuisine-chip" data-value="AFRICAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F30D;</span> Africana
+        </div>
+        <div class="cuisine-chip" data-value="VEGETARIAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F331;</span> Vegetariana
+        </div>
+        <div class="cuisine-chip" data-value="VEGAN" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F96C;</span> Vegana
+        </div>
+        <div class="cuisine-chip" data-value="SEAFOOD" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F41F;</span> Pesce &amp; Mare
+        </div>
+        <div class="cuisine-chip" data-value="HEALTHY" onclick="toggleCuisine(this)">
+          <span class="cuisine-chip__emoji">&#x1F957;</span> Salutista
+        </div>
+      </div>
+
+      <!-- Selection counter -->
+      <div class="selection-counter">
+        <div class="selection-counter__badge selection-counter__badge--empty" id="counterBadge">0</div>
+        <div class="selection-counter__text" id="counterText">
+          Seleziona <strong>almeno 1</strong> cucina per procedere
+        </div>
+      </div>
+
+      <!-- Validation error -->
+      <div class="cuisine-error" id="cuisineError">
+        Seleziona almeno una cucina per continuare.
+      </div>
+
+      <!-- Tip note -->
+      <div class="cuisine-note">
+        &#x1F4A1; <strong>Consiglio:</strong> Seleziona almeno 3 cucine per avere maggiore varieta nei suggerimenti. Piu opzioni = meno monotonia!
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="onboarding__nav">
+      <button class="btn btn--ghost" onclick="goBack()">&#8592; Indietro</button>
+      <span class="onboarding__step-indicator">Passo 4 di 4</span>
+      <button class="btn btn--primary" id="nextBtn" onclick="completeCuisines()">Completa &#x1F680;</button>
+    </div>
+  </div>
+
+  <script>
+    const selectedCuisines = new Set();
+
+    function toggleCuisine(el) {
+      const value = el.dataset.value;
+      if (selectedCuisines.has(value)) {
+        selectedCuisines.delete(value);
+        el.classList.remove('cuisine-chip--active');
+      } else {
+        selectedCuisines.add(value);
+        el.classList.add('cuisine-chip--active');
+      }
+      // Clear error on interaction
+      document.getElementById('cuisineError').classList.remove('cuisine-error--visible');
+      updateCounter();
+    }
+
+    function updateCounter() {
+      const count = selectedCuisines.size;
+      const badge = document.getElementById('counterBadge');
+      const text = document.getElementById('counterText');
+
+      badge.textContent = count;
+
+      if (count === 0) {
+        badge.classList.add('selection-counter__badge--empty');
+        text.innerHTML = 'Seleziona <strong>almeno 1</strong> cucina per procedere';
+      } else {
+        badge.classList.remove('selection-counter__badge--empty');
+        if (count === 1) {
+          text.innerHTML = '<strong>1</strong> cucina selezionata';
+        } else {
+          text.innerHTML = '<strong>' + count + '</strong> cucine selezionate';
+        }
+      }
+    }
+
+    function completeCuisines() {
+      if (selectedCuisines.size === 0) {
+        document.getElementById('cuisineError').classList.add('cuisine-error--visible');
+        return;
+      }
+
+      const data = {
+        cuisines: Array.from(selectedCuisines)
+      };
+
+      // In production: PATCH /api/profile with cuisines, then redirect
+      alert('Cucine salvate!\n\n' + JSON.stringify(data, null, 2) + '\n\nRedirect a /dashboard...');
+    }
+
+    function goBack() {
+      // In production: setStep(3) to go back to goal selection
+      alert('Torna al passo 3 (selezione obiettivo)');
+    }
+
+    // Pre-select some cuisines for demo purposes
+    function preselectDemo() {
+      const demoValues = ['ITALIAN', 'MEDITERRANEAN', 'JAPANESE'];
+      document.querySelectorAll('.cuisine-chip').forEach(chip => {
+        if (demoValues.includes(chip.dataset.value)) {
+          selectedCuisines.add(chip.dataset.value);
+          chip.classList.add('cuisine-chip--active');
+        }
+      });
+      updateCounter();
+    }
+
+    preselectDemo();
+  </script>
+</body>
+</html>

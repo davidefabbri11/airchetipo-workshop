@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impostazioni — MagnAI</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .settings-layout {
+      max-width: 720px;
+    }
+
+    /* ============ PROFILE HEADER ============ */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      padding: var(--space-8);
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-default);
+      margin-bottom: var(--space-6);
+    }
+
+    .profile-header__avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--color-sage-muted), var(--color-sage-light));
+      color: var(--color-forest);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .profile-header__avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border: 2px solid var(--color-white);
+      cursor: pointer;
+    }
+
+    .profile-header__info h2 {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      margin-bottom: var(--space-1);
+    }
+
+    .profile-header__email {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-bottom: var(--space-2);
+    }
+
+    .profile-header__badges {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    /* ============ SETTINGS SECTIONS ============ */
+    .settings-section {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-default);
+      margin-bottom: var(--space-6);
+      overflow: hidden;
+    }
+
+    .settings-section__header {
+      padding: var(--space-5) var(--space-6);
+      border-bottom: 1px solid var(--color-gray-100);
+    }
+
+    .settings-section__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .settings-section__desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-top: var(--space-1);
+    }
+
+    /* Setting rows */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--color-gray-100);
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+
+    .setting-row:last-child { border-bottom: none; }
+
+    .setting-row:hover {
+      background: var(--color-gray-100);
+    }
+
+    .setting-row__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .setting-row__label {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .setting-row__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .setting-row__action {
+      flex-shrink: 0;
+      margin-left: var(--space-4);
+    }
+
+    /* Inline edit fields */
+    .setting-row__input {
+      width: 120px;
+      text-align: right;
+      font-size: var(--text-sm);
+      padding: var(--space-2) var(--space-3);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-md);
+      background: var(--color-white);
+      font-family: var(--font-body);
+      transition: border-color var(--duration-fast) var(--ease-out);
+    }
+
+    .setting-row__input:focus {
+      outline: none;
+      border-color: var(--color-forest);
+    }
+
+    /* ============ NOTIFICATION TOGGLES ============ */
+    .notif-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--color-gray-100);
+    }
+
+    .notif-row:last-child { border-bottom: none; }
+
+    .notif-row__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .notif-row__icon--morning { background: #fef3e0; }
+    .notif-row__icon--lunch { background: #e8f5ec; }
+    .notif-row__icon--dinner { background: #e4f0f5; }
+    .notif-row__icon--snack { background: #fde8e4; }
+    .notif-row__icon--weekly { background: var(--color-sage-muted); }
+
+    .notif-row__info {
+      flex: 1;
+    }
+
+    .notif-row__name {
+      font-size: var(--text-sm);
+      font-weight: 500;
+    }
+
+    .notif-row__time {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* ============ LANGUAGE TOGGLE ============ */
+    .lang-toggle {
+      display: flex;
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .lang-toggle__opt {
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      border: none;
+      background: transparent;
+      font-family: var(--font-body);
+      color: var(--text-muted);
+    }
+
+    .lang-toggle__opt--active {
+      background: var(--color-forest);
+      color: var(--color-cream);
+    }
+
+    /* ============ SUBSCRIPTION CARD ============ */
+    .sub-card {
+      background: linear-gradient(135deg, var(--color-forest) 0%, var(--color-forest-light) 100%);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      color: var(--color-cream);
+      margin-bottom: var(--space-6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sub-card::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -15%;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 168, 83, 0.12) 0%, transparent 70%);
+    }
+
+    .sub-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-4);
+    }
+
+    .sub-card__plan {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-cream);
+    }
+
+    .sub-card__status {
+      background: var(--color-amber);
+      color: var(--color-forest-dark);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+    }
+
+    .sub-card__trial {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .sub-card__trial-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .sub-card__trial-fill {
+      height: 100%;
+      background: var(--color-amber);
+      border-radius: var(--radius-full);
+      width: 43%;
+    }
+
+    .sub-card__trial-text {
+      font-size: var(--text-sm);
+      color: var(--color-sage-light);
+      white-space: nowrap;
+    }
+
+    .sub-card__actions {
+      display: flex;
+      gap: var(--space-3);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============ DANGER ZONE ============ */
+    .danger-zone {
+      border-color: var(--color-terracotta);
+      border-style: dashed;
+    }
+
+    .danger-zone .settings-section__header {
+      border-bottom-color: rgba(196, 93, 62, 0.15);
+    }
+
+    .danger-zone .settings-section__title {
+      color: var(--color-terracotta);
+    }
+
+    .danger-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid rgba(196, 93, 62, 0.1);
+    }
+
+    .danger-row:last-child { border-bottom: none; }
+
+    .danger-row__info {
+      flex: 1;
+    }
+
+    .danger-row__label {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--color-terracotta);
+    }
+
+    .danger-row__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .profile-header__badges {
+        justify-content: center;
+      }
+      .setting-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+      }
+      .setting-row__action {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="app-sidebar">
+    <a href="index.html" class="app-sidebar__logo">
+      <div class="app-sidebar__logo-icon">🍽</div>
+      <div class="app-sidebar__logo-text">Magn<span>AI</span></div>
+    </a>
+    <nav class="app-sidebar__nav">
+      <a href="dashboard.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="scan.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scansiona
+      </a>
+      <a href="meal-plan.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano Settimanale
+      </a>
+      <div class="app-sidebar__section-title">Account</div>
+      <a href="settings.html" class="app-sidebar__link app-sidebar__link--active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </a>
+      <a href="subscription.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Abbonamento
+      </a>
+    </nav>
+    <div class="app-sidebar__footer">
+      <div class="app-sidebar__user">
+        <div class="app-sidebar__avatar">G</div>
+        <div class="app-sidebar__user-info">
+          <div class="app-sidebar__user-name">Giulia Rossi</div>
+          <div class="app-sidebar__user-email">giulia@email.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Bar -->
+  <div class="app-bottombar">
+    <nav class="app-bottombar__nav">
+      <a href="dashboard.html" class="app-bottombar__link"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</a>
+      <a href="meal-plan.html" class="app-bottombar__link"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Piano</a>
+      <a href="scan.html" class="app-bottombar__link app-bottombar__link--scan"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></a>
+      <a href="analysis.html" class="app-bottombar__link"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Analisi</a>
+      <a href="settings.html" class="app-bottombar__link app-bottombar__link--active"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profilo</a>
+    </nav>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="app-main">
+    <div class="app-main__header animate-fadeInUp">
+      <h1 class="app-main__title">Impostazioni</h1>
+      <p class="app-main__subtitle">Gestisci il tuo profilo, notifiche e preferenze</p>
+    </div>
+
+    <div class="settings-layout">
+      <!-- Profile Header -->
+      <div class="profile-header animate-fadeInUp delay-1">
+        <div class="profile-header__avatar">
+          G
+          <div class="profile-header__avatar-edit">✏️</div>
+        </div>
+        <div class="profile-header__info">
+          <h2>Giulia Rossi</h2>
+          <p class="profile-header__email">giulia.rossi@email.com</p>
+          <div class="profile-header__badges">
+            <span class="badge badge--success">🎯 Perdita peso</span>
+            <span class="badge badge--warning">🔥 12 giorni streak</span>
+            <span class="badge badge--info">⭐ Trial attivo</span>
+          </div>
+        </div>
+        <a href="onboarding.html" class="btn btn--outline btn--sm" style="flex-shrink: 0;">Modifica profilo</a>
+      </div>
+
+      <!-- Subscription -->
+      <div class="sub-card animate-fadeInUp delay-2">
+        <div class="sub-card__header">
+          <div class="sub-card__plan">Prova Gratuita</div>
+          <div class="sub-card__status">Attiva</div>
+        </div>
+        <div class="sub-card__trial">
+          <div class="sub-card__trial-bar">
+            <div class="sub-card__trial-fill"></div>
+          </div>
+          <span class="sub-card__trial-text">6 giorni rimanenti</span>
+        </div>
+        <div class="sub-card__actions">
+          <a href="subscription.html" class="btn btn--amber btn--sm">Passa a Premium</a>
+          <button class="btn btn--ghost btn--sm" style="color: var(--color-sage-light); border-color: rgba(255,255,255,0.2);">Dettagli</button>
+        </div>
+      </div>
+
+      <!-- Physical Profile -->
+      <div class="settings-section animate-fadeInUp delay-2">
+        <div class="settings-section__header">
+          <h3 class="settings-section__title">👤 Profilo fisico</h3>
+          <p class="settings-section__desc">Questi dati vengono utilizzati per calcolare il tuo fabbisogno calorico</p>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Altezza</div>
+          </div>
+          <input class="setting-row__input" type="text" value="165 cm">
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Peso attuale</div>
+            <div class="setting-row__desc">Ultimo aggiornamento: oggi</div>
+          </div>
+          <input class="setting-row__input" type="text" value="67.2 kg">
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Peso obiettivo</div>
+          </div>
+          <input class="setting-row__input" type="text" value="62 kg">
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Livello di attività</div>
+            <div class="setting-row__desc">Leggero — 1-2 allenamenti/settimana</div>
+          </div>
+          <div class="setting-row__action">
+            <button class="btn btn--outline btn--sm">Modifica</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Obiettivo</div>
+            <div class="setting-row__desc">Perdita peso — deficit 500 kcal/giorno</div>
+          </div>
+          <div class="setting-row__action">
+            <button class="btn btn--outline btn--sm">Modifica</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Fabbisogno calcolato</div>
+            <div class="setting-row__desc">Basato su formula Mifflin-St Jeor</div>
+          </div>
+          <div style="font-family: var(--font-display); font-weight: 700; color: var(--color-forest); font-size: var(--text-lg);">1,980 kcal</div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-section animate-fadeInUp delay-3">
+        <div class="settings-section__header">
+          <h3 class="settings-section__title">🔔 Notifiche</h3>
+          <p class="settings-section__desc">Promemoria per i pasti e aggiornamenti del piano</p>
+        </div>
+        <div class="notif-row">
+          <div class="notif-row__icon notif-row__icon--morning">🥐</div>
+          <div class="notif-row__info">
+            <div class="notif-row__name">Colazione</div>
+            <div class="notif-row__time">Ogni giorno alle 07:15</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+        <div class="notif-row">
+          <div class="notif-row__icon notif-row__icon--lunch">🍽</div>
+          <div class="notif-row__info">
+            <div class="notif-row__name">Pranzo</div>
+            <div class="notif-row__time">Ogni giorno alle 12:30</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+        <div class="notif-row">
+          <div class="notif-row__icon notif-row__icon--dinner">🥗</div>
+          <div class="notif-row__info">
+            <div class="notif-row__name">Cena</div>
+            <div class="notif-row__time">Ogni giorno alle 19:15</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+        <div class="notif-row">
+          <div class="notif-row__icon notif-row__icon--snack">🍎</div>
+          <div class="notif-row__info">
+            <div class="notif-row__name">Spuntino</div>
+            <div class="notif-row__time">Ogni giorno alle 16:00</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox">
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+        <div class="notif-row">
+          <div class="notif-row__icon notif-row__icon--weekly">📊</div>
+          <div class="notif-row__info">
+            <div class="notif-row__name">Report settimanale</div>
+            <div class="notif-row__time">Ogni domenica alle 10:00</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="settings-section animate-fadeInUp delay-4">
+        <div class="settings-section__header">
+          <h3 class="settings-section__title">⚙️ Preferenze</h3>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Lingua</div>
+            <div class="setting-row__desc">Cambia la lingua dell'interfaccia</div>
+          </div>
+          <div class="lang-toggle">
+            <button class="lang-toggle__opt lang-toggle__opt--active">🇮🇹 Italiano</button>
+            <button class="lang-toggle__opt">🇬🇧 English</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Cucine preferite</div>
+            <div class="setting-row__desc">Italiana, Mediterranea, Salutista</div>
+          </div>
+          <div class="setting-row__action">
+            <button class="btn btn--outline btn--sm">Modifica</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Unità di misura</div>
+            <div class="setting-row__desc">Sistema metrico (kg, cm)</div>
+          </div>
+          <div class="lang-toggle">
+            <button class="lang-toggle__opt lang-toggle__opt--active">Metrico</button>
+            <button class="lang-toggle__opt">Imperiale</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Ribilanciamento automatico</div>
+            <div class="setting-row__desc">Ricalcola i pasti dopo ogni deviazione</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Account -->
+      <div class="settings-section animate-fadeInUp delay-5">
+        <div class="settings-section__header">
+          <h3 class="settings-section__title">🔐 Account</h3>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Email</div>
+            <div class="setting-row__desc">giulia.rossi@email.com</div>
+          </div>
+          <div class="setting-row__action">
+            <button class="btn btn--outline btn--sm">Modifica</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Metodo di accesso</div>
+            <div class="setting-row__desc">Google OAuth</div>
+          </div>
+          <span class="badge badge--neutral">Google</span>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row__info">
+            <div class="setting-row__label">Esporta dati</div>
+            <div class="setting-row__desc">Scarica tutti i tuoi dati in formato CSV</div>
+          </div>
+          <div class="setting-row__action">
+            <button class="btn btn--outline btn--sm">📥 Esporta</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="settings-section danger-zone animate-fadeInUp delay-6">
+        <div class="settings-section__header">
+          <h3 class="settings-section__title">⚠️ Zona pericolosa</h3>
+        </div>
+        <div class="danger-row">
+          <div class="danger-row__info">
+            <div class="danger-row__label">Disconnetti</div>
+            <div class="danger-row__desc">Esci dal tuo account su questo dispositivo</div>
+          </div>
+          <button class="btn btn--outline btn--sm">Esci</button>
+        </div>
+        <div class="danger-row">
+          <div class="danger-row__info">
+            <div class="danger-row__label">Elimina account</div>
+            <div class="danger-row__desc">Tutti i dati verranno eliminati permanentemente</div>
+          </div>
+          <button class="btn btn--danger btn--sm">Elimina</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

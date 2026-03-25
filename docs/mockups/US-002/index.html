@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>US-002 — Obiettivi Personalizzati — MagnAI</title>
+  <link rel="stylesheet" href="../magnai/shared.css">
+  <style>
+    body {
+      background: var(--color-cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============ ONBOARDING SHELL ============ */
+    .goals-page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+      width: 100%;
+    }
+
+    .goals-page__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-6);
+    }
+
+    .goals-page__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      text-decoration: none;
+    }
+
+    .goals-page__logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--color-forest);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .goals-page__logo-text {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-forest);
+    }
+
+    .goals-page__logo-text span { color: var(--color-amber); }
+
+    /* ============ COMPLETION INDICATOR ============ */
+    .completion-strip {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-8);
+    }
+
+    .completion-strip__bar {
+      flex: 1;
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .completion-strip__bar--active {
+      background: var(--color-amber);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .completion-strip__bar--active::after {
+      content: '';
+      position: absolute;
+      left: -100%;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      animation: shimmerBar 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmerBar {
+      0% { left: -100%; }
+      100% { left: 200%; }
+    }
+
+    /* ============ HERO SECTION ============ */
+    .goals-hero {
+      text-align: center;
+      margin-bottom: var(--space-10);
+      animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+    }
+
+    .goals-hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--color-forest);
+      background: var(--color-sage-muted);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-5);
+    }
+
+    .goals-hero__badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .goals-hero__title {
+      font-family: var(--font-display);
+      font-size: var(--text-4xl);
+      font-weight: 700;
+      line-height: var(--leading-tight);
+      margin-bottom: var(--space-3);
+      color: var(--text-primary);
+    }
+
+    .goals-hero__title em {
+      font-style: italic;
+      color: var(--color-amber-dark);
+    }
+
+    .goals-hero__subtitle {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: var(--leading-relaxed);
+    }
+
+    /* ============ PROFILE SUMMARY STRIP ============ */
+    .profile-summary {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-bottom: var(--space-10);
+      animation: fadeInUp var(--duration-slow) var(--ease-out) 100ms both;
+    }
+
+    .profile-summary__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .profile-summary__value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .profile-summary__divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-default);
+    }
+
+    /* ============ GOAL CARDS ============ */
+    .goal-proposals {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      margin-bottom: var(--space-8);
+    }
+
+    .goal-proposal {
+      position: relative;
+      background: var(--color-white);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6) var(--space-8);
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: var(--space-5);
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .goal-proposal::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-2xl);
+      opacity: 0;
+      transition: opacity var(--duration-normal) var(--ease-out);
+      pointer-events: none;
+    }
+
+    .goal-proposal:hover {
+      border-color: var(--color-sage);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .goal-proposal--selected {
+      border-color: var(--color-forest);
+      box-shadow: 0 0 0 3px rgba(26, 47, 35, 0.08), var(--shadow-lg);
+      background: linear-gradient(135deg, #f0f8f3 0%, var(--color-white) 60%);
+    }
+
+    .goal-proposal--selected:hover {
+      transform: translateY(0);
+    }
+
+    .goal-proposal--recommended {
+      border-color: var(--color-amber);
+    }
+
+    .goal-proposal--recommended::before {
+      background: linear-gradient(135deg, rgba(212, 168, 83, 0.04) 0%, transparent 60%);
+      opacity: 1;
+    }
+
+    .goal-proposal--recommended.goal-proposal--selected {
+      border-color: var(--color-forest);
+      box-shadow: 0 0 0 3px rgba(26, 47, 35, 0.08), var(--shadow-glow-amber);
+    }
+
+    /* Recommended ribbon */
+    .goal-proposal__ribbon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: var(--color-amber);
+      color: var(--color-forest-dark);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: var(--space-1) var(--space-4);
+      border-radius: 0 calc(var(--radius-2xl) - 2px) 0 var(--radius-lg);
+    }
+
+    /* Icon column */
+    .goal-proposal__icon {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      transition: transform var(--duration-normal) var(--ease-out);
+    }
+
+    .goal-proposal:hover .goal-proposal__icon {
+      transform: scale(1.08);
+    }
+
+    .goal-proposal__icon--weight {
+      background: linear-gradient(135deg, #e8f5ec, #d4e0d2);
+    }
+
+    .goal-proposal__icon--fat {
+      background: linear-gradient(135deg, #fef3e0, #f5e6c8);
+    }
+
+    .goal-proposal__icon--maintain {
+      background: linear-gradient(135deg, #e4f0f5, #cde4ed);
+    }
+
+    /* Content column */
+    .goal-proposal__content {
+      min-width: 0;
+    }
+
+    .goal-proposal__name {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+      color: var(--text-primary);
+    }
+
+    .goal-proposal__desc {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin-bottom: var(--space-3);
+    }
+
+    .goal-proposal__metrics {
+      display: flex;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    .goal-proposal__metric {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .goal-proposal__metric-icon {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .goal-proposal__metric-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Selection indicator column */
+    .goal-proposal__check {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .goal-proposal--selected .goal-proposal__check {
+      border-color: var(--color-forest);
+      background: var(--color-forest);
+      color: var(--color-cream);
+    }
+
+    .goal-proposal__check-icon {
+      display: none;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .goal-proposal--selected .goal-proposal__check-icon {
+      display: block;
+    }
+
+    /* Staggered entrance */
+    .goal-proposal:nth-child(1) { animation: slideInCard var(--duration-slow) var(--ease-out) 200ms both; }
+    .goal-proposal:nth-child(2) { animation: slideInCard var(--duration-slow) var(--ease-out) 350ms both; }
+    .goal-proposal:nth-child(3) { animation: slideInCard var(--duration-slow) var(--ease-out) 500ms both; }
+
+    @keyframes slideInCard {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============ CUSTOM GOAL SECTION ============ */
+    .custom-goal-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      background: transparent;
+      width: 100%;
+      margin-bottom: var(--space-6);
+      animation: fadeInUp var(--duration-slow) var(--ease-out) 650ms both;
+    }
+
+    .custom-goal-trigger:hover {
+      border-color: var(--color-forest);
+      color: var(--text-primary);
+      background: var(--color-gray-100);
+    }
+
+    .custom-goal-trigger--active {
+      border-color: var(--color-forest);
+      border-style: solid;
+      background: var(--color-white);
+      color: var(--text-primary);
+    }
+
+    .custom-goal-trigger__icon {
+      font-size: 18px;
+      transition: transform var(--duration-fast) var(--ease-out);
+    }
+
+    .custom-goal-trigger--active .custom-goal-trigger__icon {
+      transform: rotate(45deg);
+    }
+
+    /* Custom goal form */
+    .custom-goal-form {
+      display: none;
+      background: var(--color-white);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6) var(--space-8);
+      margin-bottom: var(--space-6);
+      animation: expandIn var(--duration-normal) var(--ease-out) both;
+    }
+
+    .custom-goal-form--visible {
+      display: block;
+    }
+
+    @keyframes expandIn {
+      from {
+        opacity: 0;
+        transform: scaleY(0.95);
+        transform-origin: top;
+      }
+      to {
+        opacity: 1;
+        transform: scaleY(1);
+      }
+    }
+
+    .custom-goal-form__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .custom-goal-form__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4) var(--space-6);
+    }
+
+    .custom-goal-form__grid .form-group--full {
+      grid-column: 1 / -1;
+    }
+
+    .custom-goal-form__hint {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-top: var(--space-1);
+      line-height: var(--leading-relaxed);
+    }
+
+    /* ============ BOTTOM ACTION BAR ============ */
+    .goals-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-default);
+      animation: fadeInUp var(--duration-slow) var(--ease-out) 750ms both;
+    }
+
+    .goals-action__hint {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      max-width: 280px;
+      line-height: var(--leading-relaxed);
+    }
+
+    .goals-action__buttons {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    /* Confirm button special state */
+    .btn--confirm {
+      background: var(--color-forest);
+      color: var(--color-cream);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn--confirm:hover {
+      background: var(--color-forest-light);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn--confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn--confirm:disabled:hover {
+      background: var(--color-forest);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn--confirm::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .btn--confirm:not(:disabled):hover::after {
+      transform: translateX(100%);
+    }
+
+    /* ============ SUCCESS OVERLAY ============ */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 47, 35, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: var(--z-modal);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .success-overlay--visible {
+      display: flex;
+      animation: overlayIn var(--duration-normal) var(--ease-out) both;
+    }
+
+    @keyframes overlayIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .success-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-12) var(--space-10);
+      text-align: center;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: var(--shadow-xl);
+      animation: successBounce var(--duration-slower) var(--ease-out) 100ms both;
+    }
+
+    @keyframes successBounce {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+      }
+      60% {
+        transform: scale(1.02) translateY(-4px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .success-card__icon {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--color-sage-muted), #e8f5ec);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto var(--space-6);
+      animation: checkPop var(--duration-slow) var(--ease-out) 400ms both;
+    }
+
+    @keyframes checkPop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .success-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+    }
+
+    .success-card__desc {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-8);
+      line-height: var(--leading-relaxed);
+    }
+
+    .success-card__summary {
+      background: var(--color-cream);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5) var(--space-6);
+      margin-bottom: var(--space-8);
+      text-align: left;
+    }
+
+    .success-card__summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+      font-size: var(--text-sm);
+    }
+
+    .success-card__summary-row + .success-card__summary-row {
+      border-top: 1px solid var(--border-default);
+    }
+
+    .success-card__summary-label {
+      color: var(--text-secondary);
+    }
+
+    .success-card__summary-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .goals-page {
+        padding: var(--space-6) var(--space-4);
+      }
+
+      .goals-hero__title {
+        font-size: var(--text-3xl);
+      }
+
+      .goals-hero__subtitle {
+        font-size: var(--text-base);
+      }
+
+      .profile-summary {
+        flex-wrap: wrap;
+        gap: var(--space-3);
+      }
+
+      .profile-summary__divider {
+        display: none;
+      }
+
+      .goal-proposal {
+        grid-template-columns: auto 1fr;
+        padding: var(--space-5) var(--space-5);
+        gap: var(--space-4);
+      }
+
+      .goal-proposal__check {
+        position: absolute;
+        top: var(--space-4);
+        right: var(--space-4);
+      }
+
+      .goal-proposal__name {
+        font-size: var(--text-lg);
+      }
+
+      .goal-proposal__icon {
+        width: 52px;
+        height: 52px;
+        font-size: 24px;
+      }
+
+      .custom-goal-form {
+        padding: var(--space-5);
+      }
+
+      .custom-goal-form__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .goals-action {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: stretch;
+      }
+
+      .goals-action__hint {
+        text-align: center;
+        max-width: none;
+      }
+
+      .goals-action__buttons {
+        justify-content: center;
+      }
+
+      .success-card {
+        padding: var(--space-8) var(--space-6);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .goals-hero__title {
+        font-size: var(--text-2xl);
+      }
+
+      .goal-proposal__metrics {
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <div class="goals-page">
+    <!-- Top Bar -->
+    <div class="goals-page__top">
+      <a href="../magnai/index.html" class="goals-page__logo">
+        <div class="goals-page__logo-icon">&#127869;</div>
+        <div class="goals-page__logo-text">Magn<span>AI</span></div>
+      </a>
+    </div>
+
+    <!-- Progress — all 3 onboarding steps done, now on step 4 "goals" -->
+    <div class="completion-strip">
+      <div class="completion-strip__bar"></div>
+      <div class="completion-strip__bar"></div>
+      <div class="completion-strip__bar"></div>
+      <div class="completion-strip__bar completion-strip__bar--active"></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="goals-hero">
+      <div class="goals-hero__badge">
+        <span class="goals-hero__badge-dot"></span>
+        Profilo analizzato
+      </div>
+      <h1 class="goals-hero__title">I tuoi obiettivi <em>su misura</em></h1>
+      <p class="goals-hero__subtitle">Abbiamo analizzato i tuoi dati e calcolato obiettivi realistici. Scegline uno oppure definiscine uno personalizzato.</p>
+    </div>
+
+    <!-- Profile Summary -->
+    <div class="profile-summary">
+      <div class="profile-summary__item">
+        <span class="profile-summary__value">165 cm</span> altezza
+      </div>
+      <div class="profile-summary__divider"></div>
+      <div class="profile-summary__item">
+        <span class="profile-summary__value">72 kg</span> peso
+      </div>
+      <div class="profile-summary__divider"></div>
+      <div class="profile-summary__item">
+        <span class="profile-summary__value">34</span> anni
+      </div>
+      <div class="profile-summary__divider"></div>
+      <div class="profile-summary__item">
+        <span class="profile-summary__value">Moderato</span> attivit&agrave;
+      </div>
+    </div>
+
+    <!-- Goal Proposals -->
+    <div class="goal-proposals" id="goalProposals">
+
+      <!-- Goal 1 — Recommended -->
+      <div class="goal-proposal goal-proposal--recommended" data-goal="lose-weight" onclick="selectGoal(this)">
+        <div class="goal-proposal__ribbon">Consigliato</div>
+        <div class="goal-proposal__icon goal-proposal__icon--weight">&#9879;&#65039;</div>
+        <div class="goal-proposal__content">
+          <div class="goal-proposal__name">Perdere 5 kg in 3 mesi</div>
+          <p class="goal-proposal__desc">Deficit calorico moderato e sostenibile. Circa 0.4 kg a settimana con un approccio graduale che preserva la massa muscolare.</p>
+          <div class="goal-proposal__metrics">
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#128293;</span>
+              <span class="goal-proposal__metric-value">1.680</span> kcal/giorno
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#9201;&#65039;</span>
+              <span class="goal-proposal__metric-value">12</span> settimane
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#128200;</span>
+              Deficit <span class="goal-proposal__metric-value">-420</span> kcal
+            </div>
+          </div>
+        </div>
+        <div class="goal-proposal__check">
+          <span class="goal-proposal__check-icon">&#10003;</span>
+        </div>
+      </div>
+
+      <!-- Goal 2 -->
+      <div class="goal-proposal" data-goal="reduce-fat" onclick="selectGoal(this)">
+        <div class="goal-proposal__icon goal-proposal__icon--fat">&#128170;</div>
+        <div class="goal-proposal__content">
+          <div class="goal-proposal__name">Ridurre 2% grasso corporeo</div>
+          <p class="goal-proposal__desc">Ricomposizione corporea con surplus proteico. Perdi grasso mantenendo la massa magra con allenamento e alimentazione mirata.</p>
+          <div class="goal-proposal__metrics">
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#128293;</span>
+              <span class="goal-proposal__metric-value">1.850</span> kcal/giorno
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#9201;&#65039;</span>
+              <span class="goal-proposal__metric-value">16</span> settimane
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#129385;</span>
+              Proteine <span class="goal-proposal__metric-value">120g</span>/giorno
+            </div>
+          </div>
+        </div>
+        <div class="goal-proposal__check">
+          <span class="goal-proposal__check-icon">&#10003;</span>
+        </div>
+      </div>
+
+      <!-- Goal 3 -->
+      <div class="goal-proposal" data-goal="maintain" onclick="selectGoal(this)">
+        <div class="goal-proposal__icon goal-proposal__icon--maintain">&#9878;&#65039;</div>
+        <div class="goal-proposal__content">
+          <div class="goal-proposal__name">Mantenimento equilibrato</div>
+          <p class="goal-proposal__desc">Mantieni il tuo peso attuale con un piano alimentare bilanciato. Ideale per stabilizzare le abitudini alimentari.</p>
+          <div class="goal-proposal__metrics">
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#128293;</span>
+              <span class="goal-proposal__metric-value">2.100</span> kcal/giorno
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#9201;&#65039;</span>
+              <span class="goal-proposal__metric-value">Continuo</span>
+            </div>
+            <div class="goal-proposal__metric">
+              <span class="goal-proposal__metric-icon">&#9878;&#65039;</span>
+              Bilancio <span class="goal-proposal__metric-value">0</span> kcal
+            </div>
+          </div>
+        </div>
+        <div class="goal-proposal__check">
+          <span class="goal-proposal__check-icon">&#10003;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Goal Toggle -->
+    <button class="custom-goal-trigger" id="customToggle" onclick="toggleCustomGoal()">
+      <span class="custom-goal-trigger__icon">+</span>
+      Preferisco definire un obiettivo personalizzato
+    </button>
+
+    <!-- Custom Goal Form -->
+    <div class="custom-goal-form" id="customForm">
+      <div class="custom-goal-form__title">
+        &#9997;&#65039; Obiettivo personalizzato
+      </div>
+      <div class="custom-goal-form__grid">
+        <div class="form-group">
+          <label class="form-label">Tipo di obiettivo</label>
+          <select class="form-select" id="customType">
+            <option value="">Seleziona...</option>
+            <option value="lose-weight">Perdita peso</option>
+            <option value="reduce-fat">Riduzione grasso</option>
+            <option value="gain-muscle">Aumento massa</option>
+            <option value="maintain">Mantenimento</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso obiettivo (kg)</label>
+          <input type="number" class="form-input" id="customWeight" placeholder="67" step="0.5" min="30" max="300">
+          <span class="custom-goal-form__hint">Il tuo peso attuale: 72 kg</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Calorie giornaliere (kcal)</label>
+          <input type="number" class="form-input" id="customCalories" placeholder="1800" step="50" min="800" max="5000">
+          <span class="custom-goal-form__hint">Il tuo fabbisogno stimato: 2.100 kcal</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Durata (settimane)</label>
+          <input type="number" class="form-input" id="customDuration" placeholder="12" min="1" max="52">
+        </div>
+        <div class="form-group form-group--full" style="margin-bottom:0;">
+          <label class="form-label">Note (opzionale)</label>
+          <textarea class="form-textarea" id="customNotes" placeholder="Scrivi eventuali preferenze, vincoli alimentari o note per il piano..." style="min-height:72px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="goals-action">
+      <p class="goals-action__hint">Potrai modificare il tuo obiettivo in qualsiasi momento dalle impostazioni del profilo.</p>
+      <div class="goals-action__buttons">
+        <a href="../US-001/onboarding.html" class="btn btn--ghost">&larr; Indietro</a>
+        <button class="btn btn--lg btn--confirm" id="confirmBtn" onclick="confirmGoal()" disabled>
+          Conferma obiettivo &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-card">
+      <div class="success-card__icon">&#127942;</div>
+      <h2 class="success-card__title">Obiettivo impostato!</h2>
+      <p class="success-card__desc">Il tuo piano alimentare personalizzato &egrave; pronto. Iniziamo questo percorso insieme.</p>
+      <div class="success-card__summary" id="successSummary">
+        <!-- Filled by JS -->
+      </div>
+      <a href="../magnai/dashboard.html" class="btn btn--lg btn--primary btn--block">
+        Vai alla Dashboard &rarr;
+      </a>
+    </div>
+  </div>
+
+  <script>
+    let selectedGoalEl = null;
+    let isCustomMode = false;
+
+    const proposals = document.querySelectorAll('.goal-proposal');
+    const customToggle = document.getElementById('customToggle');
+    const customForm = document.getElementById('customForm');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const successOverlay = document.getElementById('successOverlay');
+    const successSummary = document.getElementById('successSummary');
+
+    function selectGoal(el) {
+      // Exit custom mode if entering proposal selection
+      if (isCustomMode) {
+        isCustomMode = false;
+        customToggle.classList.remove('custom-goal-trigger--active');
+        customForm.classList.remove('custom-goal-form--visible');
+      }
+
+      proposals.forEach(p => p.classList.remove('goal-proposal--selected'));
+      el.classList.add('goal-proposal--selected');
+      selectedGoalEl = el;
+      confirmBtn.disabled = false;
+    }
+
+    function toggleCustomGoal() {
+      isCustomMode = !isCustomMode;
+
+      if (isCustomMode) {
+        // Deselect proposals
+        proposals.forEach(p => p.classList.remove('goal-proposal--selected'));
+        selectedGoalEl = null;
+        confirmBtn.disabled = false;
+
+        customToggle.classList.add('custom-goal-trigger--active');
+        customForm.classList.add('custom-goal-form--visible');
+      } else {
+        customToggle.classList.remove('custom-goal-trigger--active');
+        customForm.classList.remove('custom-goal-form--visible');
+        confirmBtn.disabled = true;
+      }
+    }
+
+    function confirmGoal() {
+      let goalData = {};
+
+      if (isCustomMode) {
+        goalData = {
+          type: 'custom',
+          goalType: document.getElementById('customType').value || 'non specificato',
+          targetWeight: document.getElementById('customWeight').value || '—',
+          calories: document.getElementById('customCalories').value || '—',
+          duration: document.getElementById('customDuration').value || '—',
+          notes: document.getElementById('customNotes').value || ''
+        };
+        successSummary.innerHTML = `
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Tipo</span>
+            <span class="success-card__summary-value">Personalizzato</span>
+          </div>
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Calorie/giorno</span>
+            <span class="success-card__summary-value">${goalData.calories} kcal</span>
+          </div>
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Peso obiettivo</span>
+            <span class="success-card__summary-value">${goalData.targetWeight} kg</span>
+          </div>
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Durata</span>
+            <span class="success-card__summary-value">${goalData.duration} settimane</span>
+          </div>
+        `;
+      } else if (selectedGoalEl) {
+        const name = selectedGoalEl.querySelector('.goal-proposal__name').textContent;
+        const metrics = selectedGoalEl.querySelectorAll('.goal-proposal__metric');
+        const kcal = metrics[0]?.querySelector('.goal-proposal__metric-value')?.textContent || '—';
+        const duration = metrics[1]?.querySelector('.goal-proposal__metric-value')?.textContent || '—';
+
+        goalData = {
+          type: 'proposed',
+          goal: selectedGoalEl.dataset.goal,
+          name: name,
+          calories: kcal,
+          duration: duration
+        };
+
+        successSummary.innerHTML = `
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Obiettivo</span>
+            <span class="success-card__summary-value">${goalData.name}</span>
+          </div>
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Calorie/giorno</span>
+            <span class="success-card__summary-value">${goalData.calories} kcal</span>
+          </div>
+          <div class="success-card__summary-row">
+            <span class="success-card__summary-label">Durata</span>
+            <span class="success-card__summary-value">${goalData.duration}</span>
+          </div>
+        `;
+      }
+
+      // Show success overlay
+      successOverlay.classList.add('success-overlay--visible');
+      document.body.style.overflow = 'hidden';
+
+      // In production: POST /api/goals then redirect
+      console.log('Goal confirmed:', goalData);
+    }
+
+    // Close overlay on backdrop click
+    successOverlay.addEventListener('click', function(e) {
+      if (e.target === successOverlay) {
+        successOverlay.classList.remove('success-overlay--visible');
+        document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+</html>

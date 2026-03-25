@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MagnAI — Nutrizione Intelligente</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ============ HERO ============ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: calc(var(--topbar-height) + var(--space-16));
+      padding-bottom: var(--space-16);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 700px;
+      height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 168, 83, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      left: -15%;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(143, 168, 139, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-16);
+      align-items: center;
+    }
+
+    .hero__eyebrow {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--color-amber-dark);
+      margin-bottom: var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .hero__eyebrow::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--color-amber);
+    }
+
+    .hero__title {
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: var(--space-6);
+      letter-spacing: -0.03em;
+    }
+
+    .hero__title em {
+      font-style: italic;
+      color: var(--color-amber-dark);
+      font-weight: 700;
+    }
+
+    .hero__desc {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin-bottom: var(--space-8);
+      max-width: 480px;
+    }
+
+    .hero__actions {
+      display: flex;
+      gap: var(--space-4);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hero__trial-note {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-top: var(--space-3);
+    }
+
+    /* Hero visual — food photo mockup area */
+    .hero__visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero__phone {
+      width: 300px;
+      height: 620px;
+      background: var(--color-forest);
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: var(--shadow-xl), 0 0 60px rgba(26, 47, 35, 0.15);
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero__phone-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--color-cream);
+      border-radius: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero__phone-header {
+      background: var(--color-forest);
+      padding: var(--space-4) var(--space-4) var(--space-3);
+      color: var(--color-cream);
+    }
+
+    .hero__phone-header h4 {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      color: var(--color-cream);
+      font-weight: 600;
+    }
+
+    .hero__phone-header p {
+      font-size: var(--text-xs);
+      color: var(--color-sage-light);
+      margin: 0;
+    }
+
+    .hero__phone-body {
+      padding: var(--space-4);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .hero__phone-food {
+      height: 140px;
+      background: linear-gradient(135deg, var(--color-cream-warm) 0%, var(--color-sage-muted) 100%);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+    }
+
+    .hero__phone-food::after {
+      content: 'AI Scanning...';
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      font-size: 10px;
+      background: var(--color-forest);
+      color: var(--color-amber);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-body);
+      font-weight: 600;
+    }
+
+    .hero__phone-macro {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .hero__phone-macro-item {
+      flex: 1;
+      text-align: center;
+      padding: var(--space-2);
+      background: var(--color-gray-100);
+      border-radius: var(--radius-md);
+    }
+
+    .hero__phone-macro-item strong {
+      display: block;
+      font-size: var(--text-lg);
+      font-family: var(--font-display);
+      color: var(--text-primary);
+    }
+
+    .hero__phone-macro-item span {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .hero__phone-verdict {
+      background: #e8f5ec;
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      font-size: var(--text-xs);
+      color: var(--color-success);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* Floating cards around phone */
+    .hero__float {
+      position: absolute;
+      background: var(--color-white);
+      border-radius: var(--radius-xl);
+      padding: var(--space-3) var(--space-4);
+      box-shadow: var(--shadow-lg);
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      white-space: nowrap;
+      z-index: 3;
+    }
+
+    .hero__float--cal {
+      top: 15%;
+      right: -30px;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .hero__float--rebalance {
+      bottom: 25%;
+      left: -40px;
+      animation: float 4s ease-in-out infinite 1s;
+    }
+
+    .hero__float-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .hero__float-icon--amber {
+      background: #fef3e0;
+      color: var(--color-amber-dark);
+    }
+
+    .hero__float-icon--green {
+      background: #e8f5ec;
+      color: var(--color-success);
+    }
+
+    .hero__float-label {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .hero__float-value {
+      color: var(--text-muted);
+      font-size: var(--text-xs);
+    }
+
+    /* ============ TAGLINE STRIP ============ */
+    .tagline-strip {
+      padding: var(--space-10) 0;
+      text-align: center;
+      border-top: 1px solid var(--border-default);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .tagline-strip__text {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: var(--tracking-tight);
+    }
+
+    .tagline-strip__text span {
+      color: var(--color-amber-dark);
+      font-style: italic;
+    }
+
+    .tagline-strip__dots {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+
+    .tagline-strip__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-amber);
+    }
+
+    /* ============ FEATURES ============ */
+    .features__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+    }
+
+    .feature-card {
+      padding: var(--space-8);
+      border-radius: var(--radius-2xl);
+      background: var(--color-white);
+      border: 1px solid var(--border-default);
+      transition: all var(--duration-normal) var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      border-color: var(--color-amber);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-forest), var(--color-amber));
+      opacity: 0;
+      transition: opacity var(--duration-normal) var(--ease-out);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card__icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: var(--space-5);
+    }
+
+    .feature-card__icon--scan {
+      background: linear-gradient(135deg, var(--color-forest), var(--color-forest-light));
+      color: var(--color-amber);
+    }
+
+    .feature-card__icon--plan {
+      background: linear-gradient(135deg, var(--color-amber), var(--color-amber-light));
+      color: var(--color-forest-dark);
+    }
+
+    .feature-card__icon--rebalance {
+      background: linear-gradient(135deg, var(--color-sage), var(--color-sage-light));
+      color: var(--color-forest-dark);
+    }
+
+    .feature-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .feature-card__desc {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin-bottom: 0;
+    }
+
+    /* ============ HOW IT WORKS ============ */
+    .steps__grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      position: relative;
+    }
+
+    .steps__grid::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--color-amber) 0%, var(--color-sage) 50%, var(--color-forest) 100%);
+      opacity: 0.3;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step__number {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      background: var(--color-white);
+      border: 2px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--color-forest);
+      margin: 0 auto var(--space-5);
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .step:hover .step__number {
+      background: var(--color-forest);
+      color: var(--color-amber);
+      border-color: var(--color-forest);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .step__icon {
+      font-size: 28px;
+      margin-bottom: var(--space-2);
+    }
+
+    .step__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .step__desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      max-width: 200px;
+      margin: 0 auto;
+    }
+
+    /* ============ PERSONAS ============ */
+    .personas__grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-8);
+    }
+
+    .persona-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      border: 1px solid var(--border-default);
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .persona-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .persona-card__header {
+      padding: var(--space-6) var(--space-6) 0;
+      display: flex;
+      gap: var(--space-4);
+      align-items: flex-start;
+    }
+
+    .persona-card__avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-xl);
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .persona-card__avatar--giulia {
+      background: linear-gradient(135deg, #fef3e0, #fde8d0);
+    }
+
+    .persona-card__avatar--marco {
+      background: linear-gradient(135deg, #e4f0f5, #d0e8f0);
+    }
+
+    .persona-card__info h4 {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+    }
+
+    .persona-card__role {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    .persona-card__body {
+      padding: var(--space-4) var(--space-6) var(--space-6);
+    }
+
+    .persona-card__quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--text-lg);
+      color: var(--color-forest);
+      line-height: var(--leading-snug);
+      padding-left: var(--space-4);
+      border-left: 3px solid var(--color-amber);
+      margin-bottom: var(--space-4);
+    }
+
+    .persona-card__pain {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: 0;
+    }
+
+    .persona-card__pain strong {
+      color: var(--color-terracotta);
+    }
+
+    /* ============ PRICING ============ */
+    .pricing__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-6);
+      align-items: start;
+    }
+
+    .pricing-card {
+      background: var(--color-white);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-8);
+      text-align: center;
+      position: relative;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .pricing-card--featured {
+      border-color: var(--color-amber);
+      box-shadow: var(--shadow-glow-amber);
+      transform: scale(1.03);
+    }
+
+    .pricing-card--featured::before {
+      content: 'Più popolare';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-amber);
+      color: var(--color-forest-dark);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: var(--space-1) var(--space-4);
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+    }
+
+    .pricing-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .pricing-card__name {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .pricing-card__desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-bottom: var(--space-6);
+    }
+
+    .pricing-card__price {
+      font-family: var(--font-display);
+      font-size: var(--text-5xl);
+      font-weight: 800;
+      color: var(--color-forest);
+      line-height: 1;
+      margin-bottom: var(--space-1);
+    }
+
+    .pricing-card__price span {
+      font-size: var(--text-lg);
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .pricing-card__price-note {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-bottom: var(--space-6);
+    }
+
+    .pricing-card__features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .pricing-card__features li {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+
+    .pricing-card__features li::before {
+      content: '✓';
+      color: var(--color-success);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .pricing-card__save {
+      display: inline-block;
+      background: #e8f5ec;
+      color: var(--color-success);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-4);
+    }
+
+    /* ============ CTA SECTION ============ */
+    .cta-section {
+      background: var(--color-forest);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-16) var(--space-12);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 168, 83, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      color: var(--color-cream);
+      margin-bottom: var(--space-4);
+    }
+
+    .cta-section p {
+      color: var(--color-sage-light);
+      font-size: var(--text-lg);
+      max-width: 500px;
+      margin: 0 auto var(--space-8);
+    }
+
+    /* ============ FOOTER ============ */
+    .footer {
+      padding: var(--space-12) 0 var(--space-8);
+      border-top: 1px solid var(--border-default);
+    }
+
+    .footer__grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: var(--space-8);
+      margin-bottom: var(--space-8);
+    }
+
+    .footer__brand-desc {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      max-width: 280px;
+      margin-top: var(--space-3);
+    }
+
+    .footer__col-title {
+      font-family: var(--font-display);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wider);
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+    }
+
+    .footer__links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .footer__links a {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+
+    .footer__links a:hover {
+      color: var(--text-primary);
+    }
+
+    .footer__bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-default);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 1024px) {
+      .hero__grid { grid-template-columns: 1fr; gap: var(--space-10); }
+      .hero__visual { order: -1; }
+      .features__grid { grid-template-columns: 1fr; }
+      .steps__grid { grid-template-columns: repeat(2, 1fr); }
+      .steps__grid::before { display: none; }
+      .pricing__grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .pricing-card--featured { transform: none; }
+      .footer__grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .hero { padding-top: calc(var(--topbar-height) + var(--space-8)); }
+      .hero__phone { width: 240px; height: 500px; }
+      .hero__float { display: none; }
+      .personas__grid { grid-template-columns: 1fr; }
+      .steps__grid { grid-template-columns: 1fr; gap: var(--space-6); }
+      .cta-section { padding: var(--space-10) var(--space-6); }
+      .footer__grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Grain texture overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- ============ NAVBAR ============ -->
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo">
+        <div class="navbar__logo-icon">🍽</div>
+        <div class="navbar__logo-text">Magn<span>AI</span></div>
+      </a>
+      <div class="navbar__links">
+        <a href="#features" class="navbar__link">Funzionalità</a>
+        <a href="#how" class="navbar__link">Come funziona</a>
+        <a href="#pricing" class="navbar__link">Prezzi</a>
+      </div>
+      <div class="navbar__actions">
+        <a href="onboarding.html" class="btn btn--ghost btn--sm">Accedi</a>
+        <a href="onboarding.html" class="btn btn--primary btn--sm">Prova gratis</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero__grid">
+        <div class="animate-fadeInUp">
+          <div class="hero__eyebrow">Nutrizione AI-powered</div>
+          <h1 class="hero__title">
+            Scatta. Analizza.<br>
+            <em>Riequilibra.</em>
+          </h1>
+          <p class="hero__desc">
+            Fotografa il tuo pasto e lascia che l'intelligenza artificiale calcoli calorie e macronutrienti. Se esci dal piano, MagnAI ribilancia automaticamente i pasti successivi per mantenerti in carreggiata.
+          </p>
+          <div class="hero__actions">
+            <a href="onboarding.html" class="btn btn--amber btn--xl">Prova gratis 14 giorni</a>
+            <a href="#how" class="btn btn--outline btn--lg">Scopri come funziona</a>
+          </div>
+          <p class="hero__trial-note">Nessuna carta di credito richiesta • Cancella quando vuoi</p>
+        </div>
+
+        <div class="hero__visual animate-fadeInUp delay-2">
+          <!-- Floating cards -->
+          <div class="hero__float hero__float--cal">
+            <div class="hero__float-icon hero__float-icon--amber">🔥</div>
+            <div>
+              <div class="hero__float-label">467 kcal</div>
+              <div class="hero__float-value">rilevate</div>
+            </div>
+          </div>
+          <div class="hero__float hero__float--rebalance">
+            <div class="hero__float-icon hero__float-icon--green">⚖️</div>
+            <div>
+              <div class="hero__float-label">Ribilanciato</div>
+              <div class="hero__float-value">-120 kcal a cena</div>
+            </div>
+          </div>
+
+          <!-- Phone mockup -->
+          <div class="hero__phone">
+            <div class="hero__phone-screen">
+              <div class="hero__phone-header">
+                <h4>Analisi Pasto</h4>
+                <p>Oggi, 12:45</p>
+              </div>
+              <div class="hero__phone-body">
+                <div class="hero__phone-food">🍝</div>
+                <div class="hero__phone-macro">
+                  <div class="hero__phone-macro-item">
+                    <strong>32g</strong>
+                    <span>Proteine</span>
+                  </div>
+                  <div class="hero__phone-macro-item">
+                    <strong>58g</strong>
+                    <span>Carboidrati</span>
+                  </div>
+                  <div class="hero__phone-macro-item">
+                    <strong>18g</strong>
+                    <span>Grassi</span>
+                  </div>
+                </div>
+                <div class="hero__phone-verdict">
+                  ✓ Compatibile con il tuo piano
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAGLINE STRIP ============ -->
+  <section class="tagline-strip animate-fadeIn delay-3">
+    <div class="container">
+      <p class="tagline-strip__text">
+        L'unica app che <span>ricalcola il tuo piano</span> quando sgarri
+      </p>
+      <div class="tagline-strip__dots">
+        <div class="tagline-strip__dot"></div>
+        <div class="tagline-strip__dot"></div>
+        <div class="tagline-strip__dot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="text-center" style="margin-bottom: var(--space-12);">
+        <div class="section__eyebrow" style="justify-content: center;">Funzionalità principali</div>
+        <h2 class="section__title">Tre poteri, un'unica app</h2>
+        <p class="section__desc section__desc--centered">
+          Tutto ciò che ti serve per gestire la tua alimentazione in modo intelligente, senza calcoli manuali e senza stress.
+        </p>
+      </div>
+
+      <div class="features__grid">
+        <div class="feature-card animate-fadeInUp delay-1">
+          <div class="feature-card__icon feature-card__icon--scan">📸</div>
+          <h3 class="feature-card__title">Scansione AI</h3>
+          <p class="feature-card__desc">
+            Fotografa il tuo piatto e l'AI identifica ogni componente — dalla pasta al contorno — stimando calorie e macronutrienti con validazione incrociata su Open Food Facts.
+          </p>
+        </div>
+
+        <div class="feature-card animate-fadeInUp delay-2">
+          <div class="feature-card__icon feature-card__icon--plan">📋</div>
+          <h3 class="feature-card__title">Piano Personalizzato</h3>
+          <p class="feature-card__desc">
+            Un piano settimanale generato dall'AI basato sul tuo profilo, obiettivi e preferenze culinarie. Colazione, pranzo, cena e spuntini, calibrati al grammo.
+          </p>
+        </div>
+
+        <div class="feature-card animate-fadeInUp delay-3">
+          <div class="feature-card__icon feature-card__icon--rebalance">⚖️</div>
+          <h3 class="feature-card__title">Ribilanciamento Smart</h3>
+          <p class="feature-card__desc">
+            Hai mangiato la pizza invece dell'insalata? Nessun problema. MagnAI ricalcola automaticamente i pasti successivi per riportarti in carreggiata, senza sensi di colpa.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="section" id="how" style="background: var(--color-white);">
+    <div class="container">
+      <div class="text-center" style="margin-bottom: var(--space-12);">
+        <div class="section__eyebrow" style="justify-content: center;">Come funziona</div>
+        <h2 class="section__title">Quattro passi verso il tuo obiettivo</h2>
+      </div>
+
+      <div class="steps__grid">
+        <div class="step animate-fadeInUp delay-1">
+          <div class="step__number">1</div>
+          <div class="step__icon">👤</div>
+          <h4 class="step__title">Configura</h4>
+          <p class="step__desc">Peso, altezza, obiettivo e preferenze culinarie</p>
+        </div>
+
+        <div class="step animate-fadeInUp delay-2">
+          <div class="step__number">2</div>
+          <div class="step__icon">📸</div>
+          <h4 class="step__title">Scansiona</h4>
+          <p class="step__desc">Fotografa il pasto per l'analisi automatica AI</p>
+        </div>
+
+        <div class="step animate-fadeInUp delay-3">
+          <div class="step__number">3</div>
+          <div class="step__icon">📊</div>
+          <h4 class="step__title">Monitora</h4>
+          <p class="step__desc">Segui i tuoi progressi con grafici e statistiche</p>
+        </div>
+
+        <div class="step animate-fadeInUp delay-4">
+          <div class="step__number">4</div>
+          <div class="step__icon">⚖️</div>
+          <h4 class="step__title">Riequilibra</h4>
+          <p class="step__desc">Il piano si adatta automaticamente ad ogni sgarro</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PERSONAS ============ -->
+  <section class="section">
+    <div class="container">
+      <div class="text-center" style="margin-bottom: var(--space-12);">
+        <div class="section__eyebrow" style="justify-content: center;">Per chi è MagnAI</div>
+        <h2 class="section__title">Progettata per la tua vita reale</h2>
+      </div>
+
+      <div class="personas__grid">
+        <div class="persona-card animate-fadeInUp delay-1">
+          <div class="persona-card__header">
+            <div class="persona-card__avatar persona-card__avatar--giulia">👩‍💼</div>
+            <div class="persona-card__info">
+              <h4>Giulia, 34</h4>
+              <p class="persona-card__role">Impiegata, lavoro da remoto</p>
+            </div>
+          </div>
+          <div class="persona-card__body">
+            <p class="persona-card__quote">
+              "Voglio perdere 8 kg senza impazzire a contare le calorie a mano."
+            </p>
+            <p class="persona-card__pain">
+              <strong>Il suo problema:</strong> Le app tradizionali sono troppo complesse. Stimare le porzioni è un incubo. Dopo uno sgarro perde la motivazione.
+            </p>
+          </div>
+        </div>
+
+        <div class="persona-card animate-fadeInUp delay-2">
+          <div class="persona-card__header">
+            <div class="persona-card__avatar persona-card__avatar--marco">🏋️</div>
+            <div class="persona-card__info">
+              <h4>Marco, 28</h4>
+              <p class="persona-card__role">Personal Trainer, CrossFit</p>
+            </div>
+          </div>
+          <div class="persona-card__body">
+            <p class="persona-card__quote">
+              "Ho bisogno di macro precisi e piani che si adattino ai giorni di allenamento."
+            </p>
+            <p class="persona-card__pain">
+              <strong>Il suo problema:</strong> Calcola tutto a mano su fogli Excel. Al ristorante non ha idea delle porzioni. Il piano è statico e rigido.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section class="section" id="pricing" style="background: var(--color-white);">
+    <div class="container">
+      <div class="text-center" style="margin-bottom: var(--space-12);">
+        <div class="section__eyebrow" style="justify-content: center;">Prezzi</div>
+        <h2 class="section__title">Inizia gratis, cresci con noi</h2>
+        <p class="section__desc section__desc--centered">
+          14 giorni di prova gratuita con tutte le funzionalità. Nessuna carta di credito richiesta.
+        </p>
+      </div>
+
+      <div class="pricing__grid">
+        <div class="pricing-card animate-fadeInUp delay-1">
+          <h3 class="pricing-card__name">Prova Gratuita</h3>
+          <p class="pricing-card__desc">Tutte le funzionalità per 14 giorni</p>
+          <div class="pricing-card__price">€0 <span>/14gg</span></div>
+          <p class="pricing-card__price-note">Senza carta di credito</p>
+          <ul class="pricing-card__features">
+            <li>Scansione AI illimitata</li>
+            <li>Piano settimanale personalizzato</li>
+            <li>Ribilanciamento automatico</li>
+            <li>Dashboard e statistiche</li>
+          </ul>
+          <a href="onboarding.html" class="btn btn--outline btn--block">Inizia la prova</a>
+        </div>
+
+        <div class="pricing-card pricing-card--featured animate-fadeInUp delay-2">
+          <h3 class="pricing-card__name">Annuale</h3>
+          <p class="pricing-card__desc">Il miglior rapporto qualità-prezzo</p>
+          <div class="pricing-card__save">Risparmia 17%</div>
+          <div class="pricing-card__price">€99 <span>/anno</span></div>
+          <p class="pricing-card__price-note">€8.33 al mese</p>
+          <ul class="pricing-card__features">
+            <li>Tutto della prova gratuita</li>
+            <li>Storico pasti illimitato</li>
+            <li>Notifiche personalizzate</li>
+            <li>Supporto prioritario</li>
+          </ul>
+          <a href="subscription.html" class="btn btn--amber btn--block">Scegli annuale</a>
+        </div>
+
+        <div class="pricing-card animate-fadeInUp delay-3">
+          <h3 class="pricing-card__name">Mensile</h3>
+          <p class="pricing-card__desc">Massima flessibilità</p>
+          <div class="pricing-card__price">€9.99 <span>/mese</span></div>
+          <p class="pricing-card__price-note">Cancella quando vuoi</p>
+          <ul class="pricing-card__features">
+            <li>Tutto della prova gratuita</li>
+            <li>Storico pasti illimitato</li>
+            <li>Notifiche personalizzate</li>
+            <li>Supporto prioritario</li>
+          </ul>
+          <a href="subscription.html" class="btn btn--outline btn--block">Scegli mensile</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-section animate-fadeInUp">
+        <h2>Pronto a trasformare la tua alimentazione?</h2>
+        <p>Unisciti a migliaia di persone che hanno scoperto un modo più intelligente di mangiare. Inizia oggi, gratis.</p>
+        <a href="onboarding.html" class="btn btn--amber btn--xl">Inizia gratis — 14 giorni</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <a href="index.html" class="navbar__logo">
+            <div class="navbar__logo-icon">🍽</div>
+            <div class="navbar__logo-text">Magn<span>AI</span></div>
+          </a>
+          <p class="footer__brand-desc">
+            Nutrizione intelligente, personalizzata e adattiva. L'AI che ti aiuta a mangiare meglio, ogni giorno.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer__col-title">Prodotto</h4>
+          <ul class="footer__links">
+            <li><a href="#features">Funzionalità</a></li>
+            <li><a href="#pricing">Prezzi</a></li>
+            <li><a href="#how">Come funziona</a></li>
+            <li><a href="dashboard.html">Demo</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer__col-title">Risorse</h4>
+          <ul class="footer__links">
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Guida nutrizionale</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Supporto</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="footer__col-title">Legale</h4>
+          <ul class="footer__links">
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Termini di Servizio</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 MagnAI. Tutti i diritti riservati.</span>
+        <span>Fatto con 🤍 e AI in Italia</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

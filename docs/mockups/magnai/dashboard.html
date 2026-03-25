@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — MagnAI</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ============ DASHBOARD LAYOUT ============ */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--space-6);
+    }
+
+    /* ============ GREETING ============ */
+    .greeting {
+      margin-bottom: var(--space-2);
+    }
+
+    .greeting__hello {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+    }
+
+    .greeting__hello span {
+      color: var(--color-amber-dark);
+    }
+
+    .greeting__date {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin-top: var(--space-1);
+    }
+
+    /* ============ CALORIE RING CARD ============ */
+    .cal-ring-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .cal-ring-wrapper {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      flex-shrink: 0;
+    }
+
+    .cal-ring-wrapper svg {
+      transform: rotate(-90deg);
+      width: 160px;
+      height: 160px;
+    }
+
+    .cal-ring-track {
+      fill: none;
+      stroke: var(--color-gray-200);
+      stroke-width: 10;
+    }
+
+    .cal-ring-fill {
+      fill: none;
+      stroke: var(--color-forest);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 408.4;
+      stroke-dashoffset: 138.9;
+      animation: ringFillAnim 1.2s var(--ease-out) both;
+    }
+
+    @keyframes ringFillAnim {
+      from { stroke-dashoffset: 408.4; }
+      to { stroke-dashoffset: 138.9; }
+    }
+
+    .cal-ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cal-ring-label__value {
+      font-family: var(--font-display);
+      font-size: var(--text-4xl);
+      font-weight: 800;
+      color: var(--color-forest);
+      line-height: 1;
+    }
+
+    .cal-ring-label__unit {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: var(--space-1);
+    }
+
+    .cal-ring-info {
+      flex: 1;
+    }
+
+    .cal-ring-info h4 {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      margin-bottom: var(--space-4);
+    }
+
+    .cal-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+    }
+
+    .cal-stat-row + .cal-stat-row {
+      border-top: 1px solid var(--color-gray-100);
+    }
+
+    .cal-stat-row__label {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .cal-stat-row__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .cal-stat-row__value {
+      font-weight: 600;
+      font-size: var(--text-sm);
+    }
+
+    /* ============ MACRO BARS ============ */
+    .macros-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .macros-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-5);
+    }
+
+    .macro-row {
+      margin-bottom: var(--space-4);
+    }
+
+    .macro-row:last-child { margin-bottom: 0; }
+
+    .macro-row__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-2);
+    }
+
+    .macro-row__name {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .macro-row__emoji {
+      font-size: 16px;
+    }
+
+    .macro-row__values {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .macro-row__values strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .macro-bar {
+      height: 10px;
+      background: var(--color-gray-100);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .macro-bar__fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 1s var(--ease-out);
+    }
+
+    .macro-bar__fill--protein { background: var(--color-forest); }
+    .macro-bar__fill--carbs { background: var(--color-amber); }
+    .macro-bar__fill--fat { background: var(--color-terracotta); }
+
+    /* ============ WEEKLY CHART ============ */
+    .weekly-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .weekly-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-6);
+    }
+
+    .weekly-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+    }
+
+    .weekly-card__toggle {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    .weekly-card__toggle-btn {
+      font-size: var(--text-xs);
+      font-weight: 500;
+      padding: var(--space-1) var(--space-3);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      font-family: var(--font-body);
+    }
+
+    .weekly-card__toggle-btn--active {
+      background: var(--color-forest);
+      color: var(--color-cream);
+      border-color: var(--color-forest);
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-3);
+      height: 160px;
+      padding-bottom: var(--space-4);
+      border-bottom: 1px solid var(--color-gray-100);
+    }
+
+    .chart-bar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .chart-bar__fill {
+      width: 100%;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      min-height: 4px;
+      transition: height 0.8s var(--ease-out);
+      position: relative;
+    }
+
+    .chart-bar__fill--normal {
+      background: linear-gradient(to top, var(--color-sage-light), var(--color-forest));
+    }
+
+    .chart-bar__fill--over {
+      background: linear-gradient(to top, var(--color-terracotta-light), var(--color-terracotta));
+    }
+
+    .chart-bar__fill--today {
+      background: linear-gradient(to top, var(--color-amber-light), var(--color-amber));
+      box-shadow: var(--shadow-glow-amber);
+    }
+
+    .chart-bar__value {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .chart-bar__day {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .chart-bar__day--today {
+      color: var(--color-amber-dark);
+      font-weight: 700;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
+      justify-content: center;
+    }
+
+    .chart-legend__item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .chart-legend__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ============ RECENT MEALS ============ */
+    .meals-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .meals-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-5);
+    }
+
+    .meals-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+    }
+
+    .meal-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-gray-100);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-out);
+      border-radius: var(--radius-md);
+      padding-left: var(--space-2);
+      padding-right: var(--space-2);
+    }
+
+    .meal-item:hover {
+      background: var(--color-gray-100);
+    }
+
+    .meal-item:last-child { border-bottom: none; }
+
+    .meal-item__photo {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .meal-item__photo--breakfast { background: linear-gradient(135deg, #fef3e0, #fde8d0); }
+    .meal-item__photo--lunch { background: linear-gradient(135deg, #e8f5ec, #d0f0d8); }
+    .meal-item__photo--dinner { background: linear-gradient(135deg, #e4f0f5, #d0e0f0); }
+    .meal-item__photo--snack { background: linear-gradient(135deg, #fde8e4, #f5d0cc); }
+
+    .meal-item__info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .meal-item__name {
+      font-weight: 500;
+      font-size: var(--text-sm);
+      margin-bottom: 2px;
+    }
+
+    .meal-item__time {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .meal-item__cal {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-forest);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .meal-item__cal span {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-weight: 400;
+    }
+
+    /* ============ QUICK ACTIONS ============ */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+    }
+
+    .quick-action {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--color-white);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .quick-action:hover {
+      border-color: var(--color-amber);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .quick-action__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .quick-action__icon--scan {
+      background: var(--color-forest);
+      color: var(--color-amber);
+    }
+
+    .quick-action__icon--plan {
+      background: var(--color-amber);
+      color: var(--color-forest-dark);
+    }
+
+    .quick-action__icon--history {
+      background: var(--color-sage-muted);
+      color: var(--color-forest);
+    }
+
+    .quick-action__icon--settings {
+      background: var(--color-gray-100);
+      color: var(--color-gray-600);
+    }
+
+    .quick-action__label {
+      font-size: var(--text-sm);
+      font-weight: 500;
+    }
+
+    /* ============ SIDEBAR RIGHT — DAILY SUMMARY ============ */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .goal-card {
+      background: var(--color-forest);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      color: var(--color-cream);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .goal-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -30%;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 168, 83, 0.15) 0%, transparent 70%);
+    }
+
+    .goal-card__eyebrow {
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-sage-light);
+      margin-bottom: var(--space-2);
+    }
+
+    .goal-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-cream);
+      margin-bottom: var(--space-4);
+    }
+
+    .goal-card__stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: var(--space-3);
+    }
+
+    .goal-card__current {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 800;
+      color: var(--color-amber);
+      line-height: 1;
+    }
+
+    .goal-card__target {
+      font-size: var(--text-sm);
+      color: var(--color-sage-light);
+    }
+
+    .goal-card__bar {
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .goal-card__bar-fill {
+      height: 100%;
+      background: var(--color-amber);
+      border-radius: var(--radius-full);
+      width: 62%;
+    }
+
+    /* Tip of the day */
+    .tip-card {
+      background: var(--color-cream-warm);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      border: 1px solid var(--color-amber);
+      border-left: 4px solid var(--color-amber);
+    }
+
+    .tip-card__header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .tip-card__icon {
+      font-size: 18px;
+    }
+
+    .tip-card__label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-amber-dark);
+    }
+
+    .tip-card__text {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin: 0;
+    }
+
+    /* Upcoming meal */
+    .upcoming-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      border: 1px solid var(--border-default);
+    }
+
+    .upcoming-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-4);
+    }
+
+    .upcoming-card__title {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+    }
+
+    .upcoming-card__time {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+
+    .upcoming-meal {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-3);
+      background: var(--color-gray-100);
+      border-radius: var(--radius-lg);
+    }
+
+    .upcoming-meal__icon {
+      font-size: 28px;
+    }
+
+    .upcoming-meal__info {
+      flex: 1;
+    }
+
+    .upcoming-meal__name {
+      font-weight: 500;
+      font-size: var(--text-sm);
+      margin-bottom: 2px;
+    }
+
+    .upcoming-meal__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .upcoming-meal__cal {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--text-base);
+      color: var(--color-forest);
+    }
+
+    /* ============ FAB (Mobile Scan Button) ============ */
+    .fab {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--bottombar-height) + var(--space-4));
+      right: var(--space-4);
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      color: var(--color-amber);
+      font-size: 24px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-xl);
+      border: none;
+      cursor: pointer;
+      z-index: var(--z-sticky);
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .fab:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 30px rgba(26, 47, 35, 0.25);
+    }
+
+    /* ============ REBALANCE ALERT ============ */
+    .rebalance-alert {
+      background: linear-gradient(135deg, var(--color-cream-warm) 0%, #fef3e0 100%);
+      border: 1px solid var(--color-amber);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4) var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .rebalance-alert__icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .rebalance-alert__text {
+      flex: 1;
+    }
+
+    .rebalance-alert__title {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--color-amber-dark);
+      margin-bottom: 2px;
+    }
+
+    .rebalance-alert__desc {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .rebalance-alert__action {
+      flex-shrink: 0;
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 1024px) {
+      .dash-grid {
+        grid-template-columns: 1fr;
+      }
+      .side-panel {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .cal-ring-card {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .side-panel {
+        grid-template-columns: 1fr;
+      }
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
+      .cal-ring-wrapper {
+        width: 130px;
+        height: 130px;
+      }
+      .cal-ring-wrapper svg {
+        width: 130px;
+        height: 130px;
+      }
+      .fab { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="app-sidebar">
+    <a href="index.html" class="app-sidebar__logo">
+      <div class="app-sidebar__logo-icon">🍽</div>
+      <div class="app-sidebar__logo-text">Magn<span>AI</span></div>
+    </a>
+
+    <nav class="app-sidebar__nav">
+      <a href="dashboard.html" class="app-sidebar__link app-sidebar__link--active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="scan.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scansiona
+      </a>
+      <a href="meal-plan.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano Settimanale
+      </a>
+
+      <div class="app-sidebar__section-title">Account</div>
+      <a href="settings.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </a>
+      <a href="subscription.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Abbonamento
+      </a>
+    </nav>
+
+    <div class="app-sidebar__footer">
+      <div class="app-sidebar__user">
+        <div class="app-sidebar__avatar">G</div>
+        <div class="app-sidebar__user-info">
+          <div class="app-sidebar__user-name">Giulia Rossi</div>
+          <div class="app-sidebar__user-email">giulia@email.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ BOTTOM BAR (Mobile) ============ -->
+  <div class="app-bottombar">
+    <nav class="app-bottombar__nav">
+      <a href="dashboard.html" class="app-bottombar__link app-bottombar__link--active">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Home
+      </a>
+      <a href="meal-plan.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano
+      </a>
+      <a href="scan.html" class="app-bottombar__link app-bottombar__link--scan">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </a>
+      <a href="analysis.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analisi
+      </a>
+      <a href="settings.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profilo
+      </a>
+    </nav>
+  </div>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="app-main">
+    <!-- Greeting -->
+    <div class="greeting animate-fadeInUp">
+      <h1 class="greeting__hello">Buongiorno, <span>Giulia</span> 👋</h1>
+      <p class="greeting__date">Martedì 25 Marzo 2026</p>
+    </div>
+
+    <!-- Rebalance Alert -->
+    <div class="rebalance-alert animate-fadeInUp delay-1">
+      <div class="rebalance-alert__icon">⚖️</div>
+      <div class="rebalance-alert__text">
+        <div class="rebalance-alert__title">Piano ribilanciato</div>
+        <p class="rebalance-alert__desc">A pranzo hai mangiato 180 kcal in più del previsto. La cena è stata ricalcolata per compensare.</p>
+      </div>
+      <div class="rebalance-alert__action">
+        <a href="meal-plan.html" class="btn btn--outline btn--sm">Vedi piano</a>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <!-- LEFT COLUMN -->
+      <div class="flex flex-col gap-6">
+        <!-- Calorie Ring -->
+        <div class="cal-ring-card animate-fadeInUp delay-2">
+          <div class="cal-ring-wrapper">
+            <svg viewBox="0 0 140 140">
+              <circle class="cal-ring-track" cx="70" cy="70" r="65"/>
+              <circle class="cal-ring-fill" cx="70" cy="70" r="65"/>
+            </svg>
+            <div class="cal-ring-label">
+              <div class="cal-ring-label__value">1,340</div>
+              <div class="cal-ring-label__unit">kcal assunte</div>
+            </div>
+          </div>
+          <div class="cal-ring-info">
+            <h4>Riepilogo Giornaliero</h4>
+            <div class="cal-stat-row">
+              <span class="cal-stat-row__label">
+                <span class="cal-stat-row__dot" style="background: var(--color-forest)"></span>
+                Assunte
+              </span>
+              <span class="cal-stat-row__value">1,340 kcal</span>
+            </div>
+            <div class="cal-stat-row">
+              <span class="cal-stat-row__label">
+                <span class="cal-stat-row__dot" style="background: var(--color-sage-light)"></span>
+                Rimanenti
+              </span>
+              <span class="cal-stat-row__value" style="color: var(--color-sage)">640 kcal</span>
+            </div>
+            <div class="cal-stat-row">
+              <span class="cal-stat-row__label">
+                <span class="cal-stat-row__dot" style="background: var(--color-amber)"></span>
+                Obiettivo
+              </span>
+              <span class="cal-stat-row__value">1,980 kcal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Macros -->
+        <div class="macros-card animate-fadeInUp delay-3">
+          <h4 class="macros-card__title">Macronutrienti</h4>
+          <div class="macro-row">
+            <div class="macro-row__header">
+              <span class="macro-row__name"><span class="macro-row__emoji">🥩</span> Proteine</span>
+              <span class="macro-row__values"><strong>72g</strong> / 120g</span>
+            </div>
+            <div class="macro-bar">
+              <div class="macro-bar__fill macro-bar__fill--protein" style="width: 60%"></div>
+            </div>
+          </div>
+          <div class="macro-row">
+            <div class="macro-row__header">
+              <span class="macro-row__name"><span class="macro-row__emoji">🍞</span> Carboidrati</span>
+              <span class="macro-row__values"><strong>145g</strong> / 230g</span>
+            </div>
+            <div class="macro-bar">
+              <div class="macro-bar__fill macro-bar__fill--carbs" style="width: 63%"></div>
+            </div>
+          </div>
+          <div class="macro-row">
+            <div class="macro-row__header">
+              <span class="macro-row__name"><span class="macro-row__emoji">🥑</span> Grassi</span>
+              <span class="macro-row__values"><strong>38g</strong> / 66g</span>
+            </div>
+            <div class="macro-bar">
+              <div class="macro-bar__fill macro-bar__fill--fat" style="width: 58%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Chart -->
+        <div class="weekly-card animate-fadeInUp delay-4">
+          <div class="weekly-card__header">
+            <h4 class="weekly-card__title">Andamento Settimanale</h4>
+            <div class="weekly-card__toggle">
+              <button class="weekly-card__toggle-btn weekly-card__toggle-btn--active">Calorie</button>
+              <button class="weekly-card__toggle-btn">Proteine</button>
+            </div>
+          </div>
+          <div class="chart-bars">
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--normal" style="height: 75%">
+                <span class="chart-bar__value">1,850</span>
+              </div>
+              <span class="chart-bar__day">Lun</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--normal" style="height: 82%">
+                <span class="chart-bar__value">1,960</span>
+              </div>
+              <span class="chart-bar__day">Mar</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--over" style="height: 95%">
+                <span class="chart-bar__value">2,280</span>
+              </div>
+              <span class="chart-bar__day">Mer</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--normal" style="height: 70%">
+                <span class="chart-bar__value">1,720</span>
+              </div>
+              <span class="chart-bar__day">Gio</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--normal" style="height: 80%">
+                <span class="chart-bar__value">1,920</span>
+              </div>
+              <span class="chart-bar__day">Ven</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--over" style="height: 90%">
+                <span class="chart-bar__value">2,150</span>
+              </div>
+              <span class="chart-bar__day">Sab</span>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__fill chart-bar__fill--today" style="height: 55%">
+                <span class="chart-bar__value">1,340</span>
+              </div>
+              <span class="chart-bar__day chart-bar__day--today">Oggi</span>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="chart-legend__item">
+              <span class="chart-legend__dot" style="background: var(--color-forest)"></span>
+              In target
+            </div>
+            <div class="chart-legend__item">
+              <span class="chart-legend__dot" style="background: var(--color-terracotta)"></span>
+              Sopra target
+            </div>
+            <div class="chart-legend__item">
+              <span class="chart-legend__dot" style="background: var(--color-amber)"></span>
+              Oggi
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Meals -->
+        <div class="meals-card animate-fadeInUp delay-5">
+          <div class="meals-card__header">
+            <h4 class="meals-card__title">Pasti di Oggi</h4>
+            <a href="analysis.html" class="btn btn--ghost btn--sm">Vedi tutti →</a>
+          </div>
+
+          <a href="analysis.html" class="meal-item" style="text-decoration: none; color: inherit;">
+            <div class="meal-item__photo meal-item__photo--breakfast">🥐</div>
+            <div class="meal-item__info">
+              <div class="meal-item__name">Colazione</div>
+              <div class="meal-item__time">07:30 — Yogurt, muesli, frutta</div>
+            </div>
+            <div class="meal-item__cal">380 <span>kcal</span></div>
+          </a>
+
+          <a href="analysis.html" class="meal-item" style="text-decoration: none; color: inherit;">
+            <div class="meal-item__photo meal-item__photo--lunch">🍝</div>
+            <div class="meal-item__info">
+              <div class="meal-item__name">Pranzo</div>
+              <div class="meal-item__time">12:45 — Pasta al pomodoro, insalata</div>
+            </div>
+            <div class="meal-item__cal">620 <span>kcal</span></div>
+          </a>
+
+          <a href="analysis.html" class="meal-item" style="text-decoration: none; color: inherit;">
+            <div class="meal-item__photo meal-item__photo--snack">🍎</div>
+            <div class="meal-item__info">
+              <div class="meal-item__name">Spuntino</div>
+              <div class="meal-item__time">16:00 — Mela e mandorle</div>
+            </div>
+            <div class="meal-item__cal">180 <span>kcal</span></div>
+          </a>
+
+          <div class="meal-item" style="opacity: 0.5; border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); margin-top: var(--space-2);">
+            <div class="meal-item__photo" style="background: var(--color-gray-100); font-size: 18px;">➕</div>
+            <div class="meal-item__info">
+              <div class="meal-item__name" style="color: var(--text-muted);">Cena — in attesa</div>
+              <div class="meal-item__time">Prevista: 19:30</div>
+            </div>
+            <div class="meal-item__cal" style="color: var(--text-muted);">~460 <span>kcal</span></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions animate-fadeInUp delay-6">
+          <a href="scan.html" class="quick-action">
+            <div class="quick-action__icon quick-action__icon--scan">📸</div>
+            <div class="quick-action__label">Scansiona Pasto</div>
+          </a>
+          <a href="meal-plan.html" class="quick-action">
+            <div class="quick-action__icon quick-action__icon--plan">📋</div>
+            <div class="quick-action__label">Piano Settimanale</div>
+          </a>
+          <a href="analysis.html" class="quick-action">
+            <div class="quick-action__icon quick-action__icon--history">📊</div>
+            <div class="quick-action__label">Storico Analisi</div>
+          </a>
+          <a href="settings.html" class="quick-action">
+            <div class="quick-action__icon quick-action__icon--settings">⚙️</div>
+            <div class="quick-action__label">Impostazioni</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN — Side Panel -->
+      <div class="side-panel">
+        <!-- Weight Goal -->
+        <div class="goal-card animate-fadeInUp delay-2">
+          <div class="goal-card__eyebrow">Obiettivo Peso</div>
+          <h4 class="goal-card__title">Perdita peso</h4>
+          <div class="goal-card__stat">
+            <div class="goal-card__current">67.2 kg</div>
+            <div class="goal-card__target">Target: 62 kg</div>
+          </div>
+          <div class="goal-card__bar">
+            <div class="goal-card__bar-fill"></div>
+          </div>
+          <p style="font-size: var(--text-xs); color: var(--color-sage-light); margin-top: var(--space-2); margin-bottom: 0;">-2.8 kg dall'inizio • 62% completato</p>
+        </div>
+
+        <!-- Next Meal -->
+        <div class="upcoming-card animate-fadeInUp delay-3">
+          <div class="upcoming-card__header">
+            <h4 class="upcoming-card__title">Prossimo pasto</h4>
+            <span class="upcoming-card__time">tra 2h 15min</span>
+          </div>
+          <div class="upcoming-meal">
+            <div class="upcoming-meal__icon">🥗</div>
+            <div class="upcoming-meal__info">
+              <div class="upcoming-meal__name">Cena — Ribilanciata</div>
+              <p class="upcoming-meal__desc">Insalata di pollo, quinoa, verdure grigliate</p>
+            </div>
+            <div class="upcoming-meal__cal">460</div>
+          </div>
+        </div>
+
+        <!-- Tip -->
+        <div class="tip-card animate-fadeInUp delay-4">
+          <div class="tip-card__header">
+            <span class="tip-card__icon">💡</span>
+            <span class="tip-card__label">Consiglio del giorno</span>
+          </div>
+          <p class="tip-card__text">
+            Bere un bicchiere d'acqua prima dei pasti aiuta a ridurre l'appetito del 25%. Prova a bere 500ml di acqua 30 minuti prima di cena!
+          </p>
+        </div>
+
+        <!-- Macros mini -->
+        <div class="upcoming-card animate-fadeInUp delay-5">
+          <div class="upcoming-card__header">
+            <h4 class="upcoming-card__title">Streak 🔥</h4>
+          </div>
+          <div style="text-align: center; padding: var(--space-4) 0;">
+            <div style="font-family: var(--font-display); font-size: var(--text-5xl); font-weight: 800; color: var(--color-amber); line-height: 1;">12</div>
+            <div style="font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-2);">giorni consecutivi</div>
+            <div style="display: flex; justify-content: center; gap: 3px; margin-top: var(--space-3);">
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-forest); display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-forest); display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-forest); display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-forest); display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-forest); display: flex; align-items: center; justify-content: center; font-size: 11px;">✓</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-amber); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--color-forest-dark); font-weight: 700;">⚡</span>
+              <span style="width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--color-gray-200); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted);">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FAB Mobile -->
+  <button class="fab" onclick="location.href='scan.html'">📸</button>
+</body>
+</html>

@@ -15,6 +15,38 @@ model User {
   image      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  profile    Profile?
 
   @@map("users")
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  INTENSE
+}
+
+enum Goal {
+  LOSE_WEIGHT
+  GAIN_MUSCLE
+  REDUCE_FAT
+  MAINTAIN
+}
+
+model Profile {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  height        Float
+  weight        Float
+  age           Int
+  activityLevel ActivityLevel
+  goal             Goal
+  targetCalories   Int?
+  goalDescription  String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("profiles")
 }

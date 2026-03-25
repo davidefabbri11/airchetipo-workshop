@@ -1,0 +1,20 @@
+backend: github
+
+paths:
+  prd: docs/PRD.md
+  backlog: docs/BACKLOG.md.    #only valid for file backend
+  planning: docs/planning/
+  mockups: docs/mockups/
+
+workflow:
+  statuses:
+    todo: TODO
+    planned: PLANNED
+    in_progress: IN PROGRESS
+    review: REVIEW
+    done: DONE        # transition to DONE is manual — no skill moves a story to this status automatically
+
+#only valid for github backend
+github:
+  # owner: auto-detected from repo
+  # project_number: auto-detected from repo

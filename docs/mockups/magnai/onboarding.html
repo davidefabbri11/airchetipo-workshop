@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding — MagnAI</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body {
+      background: var(--color-cream);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============ ONBOARDING LAYOUT ============ */
+    .onboarding {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+      width: 100%;
+    }
+
+    /* Top bar */
+    .onboarding__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .onboarding__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      text-decoration: none;
+    }
+
+    .onboarding__logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--color-forest);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .onboarding__logo-text {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-forest);
+    }
+
+    .onboarding__logo-text span { color: var(--color-amber); }
+
+    .onboarding__skip {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+
+    .onboarding__skip:hover { color: var(--text-primary); }
+
+    /* ============ PROGRESS BAR ============ */
+    .step-progress {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-10);
+    }
+
+    .step-progress__bar {
+      flex: 1;
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: var(--color-gray-200);
+      overflow: hidden;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .step-progress__bar--done {
+      background: var(--color-forest);
+    }
+
+    .step-progress__bar--active {
+      background: var(--color-gray-200);
+      position: relative;
+    }
+
+    .step-progress__bar--active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: var(--color-amber);
+      border-radius: var(--radius-full);
+      animation: progressPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes progressPulse {
+      0%, 100% { width: 40%; }
+      50% { width: 60%; }
+    }
+
+    /* ============ STEP CONTAINER ============ */
+    .step-container {
+      flex: 1;
+      display: none;
+    }
+
+    .step-container--active {
+      display: block;
+      animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+    }
+
+    .step__eyebrow {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-amber-dark);
+      margin-bottom: var(--space-3);
+    }
+
+    .step__title {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+    }
+
+    .step__desc {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-8);
+      max-width: 500px;
+    }
+
+    /* ============ STEP 1 — PROFILE ============ */
+    .profile-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4) var(--space-6);
+    }
+
+    .profile-form .form-group--full {
+      grid-column: 1 / -1;
+    }
+
+    /* Activity level cards */
+    .activity-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+    }
+
+    .activity-card {
+      text-align: center;
+      padding: var(--space-4) var(--space-2);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      background: var(--color-white);
+    }
+
+    .activity-card:hover {
+      border-color: var(--color-forest);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .activity-card--active {
+      border-color: var(--color-forest);
+      background: var(--color-sage-muted);
+    }
+
+    .activity-card__icon {
+      font-size: 28px;
+      margin-bottom: var(--space-2);
+    }
+
+    .activity-card__name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .activity-card__desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ============ STEP 2 — GOALS ============ */
+    .goal-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+    }
+
+    .goal-card {
+      padding: var(--space-6);
+      border: 1.5px solid var(--border-default);
+      border-radius: var(--radius-2xl);
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+      background: var(--color-white);
+      position: relative;
+    }
+
+    .goal-card:hover {
+      border-color: var(--color-amber);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .goal-card--active {
+      border-color: var(--color-forest);
+      box-shadow: 0 0 0 3px rgba(26, 47, 35, 0.08);
+      background: linear-gradient(135deg, #f0f8f3 0%, var(--color-white) 100%);
+    }
+
+    .goal-card--active::after {
+      content: '✓';
+      position: absolute;
+      top: var(--space-3);
+      right: var(--space-3);
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      background: var(--color-forest);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .goal-card__icon {
+      font-size: 36px;
+      margin-bottom: var(--space-3);
+    }
+
+    .goal-card__name {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .goal-card__desc {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+      margin: 0;
+    }
+
+    /* ============ STEP 3 — CUISINES ============ */
+    .cuisine-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .cuisine-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-default);
+      background: var(--color-white);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+      font-size: var(--text-sm);
+      font-weight: 500;
+    }
+
+    .cuisine-tag:hover {
+      border-color: var(--color-forest);
+      background: var(--color-gray-100);
+    }
+
+    .cuisine-tag--active {
+      border-color: var(--color-forest);
+      background: var(--color-forest);
+      color: var(--color-cream);
+    }
+
+    .cuisine-tag__emoji {
+      font-size: 18px;
+    }
+
+    .cuisine-note {
+      margin-top: var(--space-6);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-cream-warm);
+      border-radius: var(--radius-lg);
+      border-left: 3px solid var(--color-amber);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    /* ============ STEP 4 — PREVIEW ============ */
+    .preview-card {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-default);
+      overflow: hidden;
+    }
+
+    .preview-card__header {
+      background: var(--color-forest);
+      padding: var(--space-6);
+      color: var(--color-cream);
+      text-align: center;
+    }
+
+    .preview-card__header h3 {
+      font-family: var(--font-display);
+      color: var(--color-cream);
+      font-size: var(--text-2xl);
+      margin-bottom: var(--space-2);
+    }
+
+    .preview-card__header p {
+      color: var(--color-sage-light);
+      font-size: var(--text-sm);
+      margin: 0;
+    }
+
+    .preview-card__body {
+      padding: var(--space-6);
+    }
+
+    .preview-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .preview-stat {
+      text-align: center;
+      padding: var(--space-4);
+      background: var(--color-gray-100);
+      border-radius: var(--radius-xl);
+    }
+
+    .preview-stat__value {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 800;
+      color: var(--color-forest);
+      line-height: 1;
+    }
+
+    .preview-stat__label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin-top: var(--space-1);
+    }
+
+    .preview-meal {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--color-gray-100);
+    }
+
+    .preview-meal:last-child { border-bottom: none; }
+
+    .preview-meal__icon {
+      font-size: 24px;
+    }
+
+    .preview-meal__info {
+      flex: 1;
+    }
+
+    .preview-meal__name {
+      font-weight: 500;
+      font-size: var(--text-sm);
+    }
+
+    .preview-meal__desc {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .preview-meal__cal {
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--color-forest);
+    }
+
+    /* ============ NAVIGATION BUTTONS ============ */
+    .onboarding__nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-10);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--border-default);
+    }
+
+    .onboarding__step-indicator {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .profile-form {
+        grid-template-columns: 1fr;
+      }
+      .activity-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .goal-cards {
+        grid-template-columns: 1fr;
+      }
+      .preview-stats {
+        grid-template-columns: 1fr;
+      }
+      .step__title {
+        font-size: var(--text-2xl);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <div class="onboarding">
+    <!-- Top Bar -->
+    <div class="onboarding__top">
+      <a href="index.html" class="onboarding__logo">
+        <div class="onboarding__logo-icon">🍽</div>
+        <div class="onboarding__logo-text">Magn<span>AI</span></div>
+      </a>
+      <a href="dashboard.html" class="onboarding__skip">Salta per ora →</a>
+    </div>
+
+    <!-- Progress -->
+    <div class="step-progress">
+      <div class="step-progress__bar step-progress__bar--done"></div>
+      <div class="step-progress__bar step-progress__bar--active"></div>
+      <div class="step-progress__bar"></div>
+      <div class="step-progress__bar"></div>
+    </div>
+
+    <!-- ============ STEP 1 — Profile ============ -->
+    <div class="step-container" id="step1">
+      <div class="step__eyebrow">Passo 1 di 4</div>
+      <h2 class="step__title">Raccontaci di te</h2>
+      <p class="step__desc">Queste informazioni ci servono per calcolare il tuo fabbisogno calorico e creare un piano personalizzato.</p>
+
+      <div class="profile-form">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-input" placeholder="Giulia" value="Giulia">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Età</label>
+          <input type="number" class="form-input" placeholder="34" value="34">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Altezza (cm)</label>
+          <input type="number" class="form-input" placeholder="165" value="165">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso attuale (kg)</label>
+          <input type="number" class="form-input" placeholder="70" value="70">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso obiettivo (kg)</label>
+          <input type="number" class="form-input" placeholder="62" value="62">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sesso</label>
+          <select class="form-select">
+            <option>Donna</option>
+            <option>Uomo</option>
+            <option>Preferisco non specificare</option>
+          </select>
+        </div>
+
+        <div class="form-group form-group--full">
+          <label class="form-label">Livello di attività</label>
+          <div class="activity-cards">
+            <div class="activity-card">
+              <div class="activity-card__icon">🧘</div>
+              <div class="activity-card__name">Sedentario</div>
+              <div class="activity-card__desc">Lavoro d'ufficio, poco movimento</div>
+            </div>
+            <div class="activity-card activity-card--active">
+              <div class="activity-card__icon">🚶</div>
+              <div class="activity-card__name">Leggero</div>
+              <div class="activity-card__desc">Camminate, 1-2 allenamenti</div>
+            </div>
+            <div class="activity-card">
+              <div class="activity-card__icon">🏃</div>
+              <div class="activity-card__name">Moderato</div>
+              <div class="activity-card__desc">3-5 allenamenti a settimana</div>
+            </div>
+            <div class="activity-card">
+              <div class="activity-card__icon">🏋️</div>
+              <div class="activity-card__name">Intenso</div>
+              <div class="activity-card__desc">6-7 allenamenti, sport</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STEP 2 — Goal ============ -->
+    <div class="step-container step-container--active" id="step2">
+      <div class="step__eyebrow">Passo 2 di 4</div>
+      <h2 class="step__title">Qual è il tuo obiettivo?</h2>
+      <p class="step__desc">Scegli il risultato che vuoi raggiungere. Potrai sempre cambiarlo più tardi nelle impostazioni.</p>
+
+      <div class="goal-cards">
+        <div class="goal-card goal-card--active">
+          <div class="goal-card__icon">⬇️</div>
+          <div class="goal-card__name">Perdita peso</div>
+          <p class="goal-card__desc">Deficit calorico controllato per perdere peso in modo sano e sostenibile, senza rinunce drastiche.</p>
+        </div>
+        <div class="goal-card">
+          <div class="goal-card__icon">💪</div>
+          <div class="goal-card__name">Aumento massa</div>
+          <p class="goal-card__desc">Surplus calorico mirato con alto apporto proteico per costruire massa muscolare magra.</p>
+        </div>
+        <div class="goal-card">
+          <div class="goal-card__icon">🔥</div>
+          <div class="goal-card__name">Perdita grasso</div>
+          <p class="goal-card__desc">Ricomposizione corporea — perdere grasso mantenendo la massa muscolare con macro ottimizzati.</p>
+        </div>
+        <div class="goal-card">
+          <div class="goal-card__icon">⚖️</div>
+          <div class="goal-card__name">Mantenimento</div>
+          <p class="goal-card__desc">Mantieni il peso attuale con una dieta equilibrata e nutriente. Perfetto dopo aver raggiunto il target.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STEP 3 — Cuisines ============ -->
+    <div class="step-container" id="step3">
+      <div class="step__eyebrow">Passo 3 di 4</div>
+      <h2 class="step__title">Che cucina preferisci?</h2>
+      <p class="step__desc">Seleziona le cucine che ami — useremo queste preferenze per generare il tuo piano settimanale personalizzato.</p>
+
+      <div class="cuisine-tags">
+        <div class="cuisine-tag cuisine-tag--active">
+          <span class="cuisine-tag__emoji">🇮🇹</span> Italiana
+        </div>
+        <div class="cuisine-tag cuisine-tag--active">
+          <span class="cuisine-tag__emoji">🫒</span> Mediterranea
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇯🇵</span> Giapponese
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇲🇽</span> Messicana
+        </div>
+        <div class="cuisine-tag cuisine-tag--active">
+          <span class="cuisine-tag__emoji">🥗</span> Salutista
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇮🇳</span> Indiana
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇨🇳</span> Cinese
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇹🇭</span> Thailandese
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇬🇷</span> Greca
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇺🇸</span> Americana
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🇰🇷</span> Coreana
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🌱</span> Vegetariana
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🥬</span> Vegana
+        </div>
+        <div class="cuisine-tag">
+          <span class="cuisine-tag__emoji">🐟</span> Pesce & Mare
+        </div>
+      </div>
+
+      <div class="cuisine-note">
+        💡 <strong>Consiglio:</strong> Seleziona almeno 3 cucine per avere più varietà nel piano settimanale. Più opzioni = meno monotonia!
+      </div>
+    </div>
+
+    <!-- ============ STEP 4 — Preview ============ -->
+    <div class="step-container" id="step4">
+      <div class="step__eyebrow">Passo 4 di 4</div>
+      <h2 class="step__title">Il tuo piano è pronto!</h2>
+      <p class="step__desc">Ecco un'anteprima del piano che abbiamo creato per te. Potrai personalizzarlo in qualsiasi momento.</p>
+
+      <div class="preview-card">
+        <div class="preview-card__header">
+          <h3>Piano di Giulia</h3>
+          <p>Obiettivo: perdita peso • -8 kg in 16 settimane</p>
+        </div>
+        <div class="preview-card__body">
+          <div class="preview-stats">
+            <div class="preview-stat">
+              <div class="preview-stat__value">1,980</div>
+              <div class="preview-stat__label">kcal / giorno</div>
+            </div>
+            <div class="preview-stat">
+              <div class="preview-stat__value">120g</div>
+              <div class="preview-stat__label">proteine</div>
+            </div>
+            <div class="preview-stat">
+              <div class="preview-stat__value">0.5 kg</div>
+              <div class="preview-stat__label">perdita / settimana</div>
+            </div>
+          </div>
+
+          <h4 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-3);">Esempio giornata tipo</h4>
+
+          <div class="preview-meal">
+            <div class="preview-meal__icon">🥐</div>
+            <div class="preview-meal__info">
+              <div class="preview-meal__name">Colazione</div>
+              <p class="preview-meal__desc">Yogurt greco, muesli, frutta fresca</p>
+            </div>
+            <div class="preview-meal__cal">380</div>
+          </div>
+          <div class="preview-meal">
+            <div class="preview-meal__icon">🥗</div>
+            <div class="preview-meal__info">
+              <div class="preview-meal__name">Pranzo</div>
+              <p class="preview-meal__desc">Insalata di farro con verdure grigliate</p>
+            </div>
+            <div class="preview-meal__cal">450</div>
+          </div>
+          <div class="preview-meal">
+            <div class="preview-meal__icon">🍎</div>
+            <div class="preview-meal__info">
+              <div class="preview-meal__name">Spuntino</div>
+              <p class="preview-meal__desc">Frutta secca e fresca</p>
+            </div>
+            <div class="preview-meal__cal">180</div>
+          </div>
+          <div class="preview-meal">
+            <div class="preview-meal__icon">🍗</div>
+            <div class="preview-meal__info">
+              <div class="preview-meal__name">Cena</div>
+              <p class="preview-meal__desc">Pollo alla griglia con patate e verdure</p>
+            </div>
+            <div class="preview-meal__cal">520</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="onboarding__nav">
+      <button class="btn btn--ghost" onclick="prevStep()">← Indietro</button>
+      <span class="onboarding__step-indicator">Passo <span id="currentStep">2</span> di 4</span>
+      <button class="btn btn--primary" id="nextBtn" onclick="nextStep()">Avanti →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 2;
+    const steps = document.querySelectorAll('.step-container');
+    const bars = document.querySelectorAll('.step-progress__bar');
+    const indicator = document.getElementById('currentStep');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function showStep(n) {
+      steps.forEach((s, i) => {
+        s.classList.remove('step-container--active');
+        if (i === n - 1) s.classList.add('step-container--active');
+      });
+      bars.forEach((b, i) => {
+        b.className = 'step-progress__bar';
+        if (i < n - 1) b.classList.add('step-progress__bar--done');
+        else if (i === n - 1) b.classList.add('step-progress__bar--active');
+      });
+      indicator.textContent = n;
+      nextBtn.textContent = n === 4 ? 'Inizia! 🚀' : 'Avanti →';
+      if (n === 4) nextBtn.onclick = () => location.href = 'dashboard.html';
+      else nextBtn.onclick = nextStep;
+    }
+
+    function nextStep() {
+      if (current < 4) { current++; showStep(current); }
+    }
+
+    function prevStep() {
+      if (current > 1) { current--; showStep(current); }
+    }
+  </script>
+</body>
+</html>

@@ -33,9 +33,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
+  // Protect authenticated-only routes
   if (
     !user &&
-    request.nextUrl.pathname.startsWith("/dashboard")
+    (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding") || pathname.startsWith("/goals"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/signin";

@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scatta & Carica Foto Piatto — MagnAI</title>
+  <link rel="stylesheet" href="../magnai/shared.css">
+  <style>
+    /* ============ PAGE LAYOUT ============ */
+    .scan-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    /* ============ STATE MANAGEMENT ============ */
+    .state-idle .state--capturing,
+    .state-idle .state--preview,
+    .state-idle .state--uploading { display: none; }
+
+    .state-capturing .state--idle,
+    .state-capturing .state--preview,
+    .state-capturing .state--uploading { display: none; }
+
+    .state-preview .state--idle,
+    .state-preview .state--capturing,
+    .state-preview .state--uploading { display: none; }
+
+    .state-uploading .state--idle,
+    .state-uploading .state--capturing,
+    .state-uploading .state--preview { display: none; }
+
+    /* ============ VIEWFINDER ============ */
+    .viewfinder {
+      background: var(--color-forest-dark);
+      border-radius: var(--radius-2xl);
+      aspect-ratio: 4/3;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+    }
+
+    .viewfinder__bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(143, 168, 139, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(212, 168, 83, 0.08) 0%, transparent 50%);
+    }
+
+    /* Corner brackets */
+    .viewfinder__corners {
+      position: absolute;
+      inset: 40px;
+      pointer-events: none;
+    }
+
+    .viewfinder__corner {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+    }
+
+    .viewfinder__corner::before,
+    .viewfinder__corner::after {
+      content: '';
+      position: absolute;
+      background: var(--color-amber);
+      border-radius: 2px;
+      transition: background var(--duration-normal) var(--ease-out);
+    }
+
+    .viewfinder__corner--tl { top: 0; left: 0; }
+    .viewfinder__corner--tl::before { top: 0; left: 0; width: 40px; height: 3px; }
+    .viewfinder__corner--tl::after { top: 0; left: 0; width: 3px; height: 40px; }
+
+    .viewfinder__corner--tr { top: 0; right: 0; }
+    .viewfinder__corner--tr::before { top: 0; right: 0; width: 40px; height: 3px; }
+    .viewfinder__corner--tr::after { top: 0; right: 0; width: 3px; height: 40px; }
+
+    .viewfinder__corner--bl { bottom: 0; left: 0; }
+    .viewfinder__corner--bl::before { bottom: 0; left: 0; width: 40px; height: 3px; }
+    .viewfinder__corner--bl::after { bottom: 0; left: 0; width: 3px; height: 40px; }
+
+    .viewfinder__corner--br { bottom: 0; right: 0; }
+    .viewfinder__corner--br::before { bottom: 0; right: 0; width: 40px; height: 3px; }
+    .viewfinder__corner--br::after { bottom: 0; right: 0; width: 3px; height: 40px; }
+
+    /* Scanning animation line */
+    .viewfinder__scan-line {
+      position: absolute;
+      left: 40px;
+      right: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--color-amber), transparent);
+      animation: scanLine 3s ease-in-out infinite;
+      opacity: 0.7;
+    }
+
+    @keyframes scanLine {
+      0% { top: 15%; opacity: 0; }
+      10% { opacity: 0.7; }
+      90% { opacity: 0.7; }
+      100% { top: 85%; opacity: 0; }
+    }
+
+    .viewfinder__content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--color-cream);
+    }
+
+    .viewfinder__icon {
+      font-size: 64px;
+      margin-bottom: var(--space-4);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .viewfinder__text {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 600;
+      color: var(--color-cream);
+      margin-bottom: var(--space-2);
+    }
+
+    .viewfinder__hint {
+      font-size: var(--text-sm);
+      color: var(--color-sage-light);
+      margin: 0;
+    }
+
+    /* ============ CAMERA LIVE VIEW (simulated) ============ */
+    .camera-live {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, #1a2520 0%, #0d1710 50%, #1a2018 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .camera-live__simulated-feed {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 45%, rgba(80, 110, 80, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 35% 55%, rgba(180, 140, 60, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 65% 40%, rgba(100, 140, 90, 0.1) 0%, transparent 45%);
+      animation: cameraBreath 3s ease-in-out infinite;
+    }
+
+    @keyframes cameraBreath {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .camera-live__rec {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-cream);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wider);
+    }
+
+    .camera-live__rec-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e74c3c;
+      animation: recPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes recPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .camera-live__plate {
+      position: relative;
+      z-index: 1;
+      font-size: 100px;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+      animation: plateFloat 5s ease-in-out infinite;
+    }
+
+    @keyframes plateFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.02); }
+    }
+
+    /* ============ PREVIEW STATE ============ */
+    .preview-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-view__image-container {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, #1e3328 0%, #142118 50%, #1a2a1f 100%);
+    }
+
+    .preview-view__plate-emoji {
+      font-size: 120px;
+      filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+    }
+
+    .preview-view__badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: rgba(26, 47, 35, 0.85);
+      backdrop-filter: blur(8px);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-sage-light);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .preview-view__badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-success);
+    }
+
+    .preview-view__file-info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 29, 21, 0.8);
+      backdrop-filter: blur(12px);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .preview-view__file-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .preview-view__filename {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--color-cream);
+    }
+
+    .preview-view__filesize {
+      font-size: var(--text-xs);
+      color: var(--color-sage-light);
+    }
+
+    .preview-view__format-badge {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wider);
+      color: var(--color-amber);
+      background: rgba(212, 168, 83, 0.15);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(212, 168, 83, 0.3);
+    }
+
+    /* ============ UPLOADING STATE ============ */
+    .uploading-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-6);
+    }
+
+    .uploading-view__bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(212, 168, 83, 0.06) 0%, transparent 60%),
+        radial-gradient(circle at 30% 70%, rgba(143, 168, 139, 0.08) 0%, transparent 50%);
+    }
+
+    .upload-progress-ring {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .upload-progress-ring svg {
+      transform: rotate(-90deg);
+      width: 120px;
+      height: 120px;
+    }
+
+    .upload-progress-ring__track {
+      fill: none;
+      stroke: rgba(255,255,255,0.1);
+      stroke-width: 5;
+    }
+
+    .upload-progress-ring__fill {
+      fill: none;
+      stroke: var(--color-amber);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 339.292;
+      stroke-dashoffset: 339.292;
+      animation: uploadRing 2.5s var(--ease-out) forwards;
+    }
+
+    @keyframes uploadRing {
+      0% { stroke-dashoffset: 339.292; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    .upload-progress-ring__label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-progress-ring__percent {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--color-cream);
+    }
+
+    .upload-progress-ring__sublabel {
+      font-size: var(--text-xs);
+      color: var(--color-sage-light);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wider);
+    }
+
+    .uploading-view__text {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .uploading-view__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      color: var(--color-cream);
+      margin-bottom: var(--space-1);
+    }
+
+    .uploading-view__desc {
+      font-size: var(--text-sm);
+      color: var(--color-sage-light);
+      margin: 0;
+    }
+
+    /* Uploading particles */
+    .upload-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .upload-particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--color-amber);
+      opacity: 0;
+      animation: particleRise 2s ease-out infinite;
+    }
+
+    .upload-particle:nth-child(1) { left: 20%; animation-delay: 0s; }
+    .upload-particle:nth-child(2) { left: 35%; animation-delay: 0.4s; }
+    .upload-particle:nth-child(3) { left: 50%; animation-delay: 0.8s; }
+    .upload-particle:nth-child(4) { left: 65%; animation-delay: 1.2s; }
+    .upload-particle:nth-child(5) { left: 80%; animation-delay: 1.6s; }
+
+    @keyframes particleRise {
+      0% { bottom: 10%; opacity: 0; transform: scale(0.5); }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.3; }
+      100% { bottom: 90%; opacity: 0; transform: scale(1.5); }
+    }
+
+    /* ============ CAPTURE ACTIONS ============ */
+    .capture-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-6);
+      margin-top: var(--space-6);
+    }
+
+    /* Gallery upload button */
+    .capture-secondary {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .capture-secondary:hover {
+      transform: translateY(-2px);
+    }
+
+    .capture-secondary__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: var(--color-gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 1.5px solid var(--border-default);
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .capture-secondary:hover .capture-secondary__icon {
+      border-color: var(--color-forest);
+      background: var(--color-sage-muted);
+    }
+
+    .capture-secondary__label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Main capture button */
+    .capture-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      border: 4px solid var(--color-forest);
+      background: var(--color-white);
+      cursor: pointer;
+      position: relative;
+      transition: all var(--duration-fast) var(--ease-out);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .capture-btn::after {
+      content: '';
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--color-forest);
+      transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .capture-btn:hover {
+      transform: scale(1.05);
+      border-color: var(--color-amber);
+    }
+
+    .capture-btn:hover::after {
+      background: var(--color-amber);
+    }
+
+    .capture-btn:active::after {
+      transform: scale(0.9);
+    }
+
+    /* Flash animation on capture */
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: white;
+      border-radius: var(--radius-2xl);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .flash-overlay--active {
+      animation: flash 0.4s ease-out;
+    }
+
+    @keyframes flash {
+      0% { opacity: 0.9; }
+      100% { opacity: 0; }
+    }
+
+    /* ============ PREVIEW ACTIONS BAR ============ */
+    .preview-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+
+    .preview-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: var(--text-sm);
+      letter-spacing: var(--tracking-wide);
+      border: none;
+      border-radius: var(--radius-full);
+      padding: var(--space-3) var(--space-6);
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+      text-decoration: none;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .preview-action-btn:active { transform: scale(0.97); }
+
+    .preview-action-btn--discard {
+      background: transparent;
+      color: var(--color-terracotta);
+      border: 1.5px solid var(--color-terracotta);
+    }
+
+    .preview-action-btn--discard:hover {
+      background: rgba(196, 93, 62, 0.08);
+    }
+
+    .preview-action-btn--retake {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border-strong);
+    }
+
+    .preview-action-btn--retake:hover {
+      border-color: var(--color-forest);
+      background: var(--color-gray-100);
+      color: var(--text-primary);
+    }
+
+    .preview-action-btn--analyze {
+      background: var(--color-amber);
+      color: var(--color-forest-dark);
+      border: none;
+      font-weight: 600;
+      padding: var(--space-3) var(--space-8);
+    }
+
+    .preview-action-btn--analyze:hover {
+      background: var(--color-amber-light);
+      box-shadow: var(--shadow-glow-amber);
+    }
+
+    /* ============ SIDE PANEL ============ */
+    .scan-side {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    /* Format info card */
+    .format-info {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .format-info__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .format-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) 0;
+    }
+
+    .format-item + .format-item {
+      border-top: 1px solid var(--color-gray-100);
+    }
+
+    .format-item__label {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+    }
+
+    .format-item__value {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .format-item__value--amber {
+      color: var(--color-amber-dark);
+    }
+
+    /* Drag & drop zone */
+    .drop-zone {
+      background: var(--color-cream-warm);
+      border: 2px dashed var(--color-gray-300);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-8) var(--space-6);
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-out);
+    }
+
+    .drop-zone:hover,
+    .drop-zone--dragover {
+      border-color: var(--color-amber);
+      background: rgba(212, 168, 83, 0.08);
+    }
+
+    .drop-zone--dragover {
+      transform: scale(1.01);
+    }
+
+    .drop-zone__icon {
+      font-size: 40px;
+      margin-bottom: var(--space-3);
+      display: block;
+    }
+
+    .drop-zone__text {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-1);
+    }
+
+    .drop-zone__hint {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .drop-zone__link {
+      color: var(--color-amber-dark);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: rgba(212, 168, 83, 0.4);
+      text-underline-offset: 2px;
+    }
+
+    .drop-zone__link:hover {
+      text-decoration-color: var(--color-amber-dark);
+    }
+
+    /* Tips card */
+    .scan-tips {
+      background: var(--color-white);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      border: 1px solid var(--border-default);
+    }
+
+    .scan-tips__title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .scan-tip {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      align-items: flex-start;
+    }
+
+    .scan-tip + .scan-tip {
+      border-top: 1px solid var(--color-gray-100);
+    }
+
+    .scan-tip__num {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--color-sage-muted);
+      color: var(--color-forest);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .scan-tip__text {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-relaxed);
+    }
+
+    .scan-tip__text strong {
+      color: var(--text-primary);
+    }
+
+    /* Compression info card */
+    .compression-info {
+      background: linear-gradient(135deg, var(--color-forest), var(--color-forest-light));
+      border-radius: var(--radius-2xl);
+      padding: var(--space-5);
+      color: var(--color-cream);
+    }
+
+    .compression-info__header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .compression-info__title {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-cream);
+    }
+
+    .compression-info__desc {
+      font-size: var(--text-sm);
+      color: var(--color-sage-light);
+      margin-bottom: var(--space-4);
+      line-height: var(--leading-relaxed);
+    }
+
+    .compression-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .compression-bar__before {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-terracotta-light);
+      white-space: nowrap;
+    }
+
+    .compression-bar__track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .compression-bar__fill {
+      height: 100%;
+      width: 35%;
+      background: linear-gradient(90deg, var(--color-amber), var(--color-amber-light));
+      border-radius: var(--radius-full);
+      animation: compressFill 1.5s var(--ease-out) 0.5s both;
+    }
+
+    @keyframes compressFill {
+      from { width: 100%; }
+      to { width: 35%; }
+    }
+
+    .compression-bar__after {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-amber-light);
+      white-space: nowrap;
+    }
+
+    /* ============ HIDDEN FILE INPUT ============ */
+    .file-input-hidden {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 1024px) {
+      .scan-layout {
+        grid-template-columns: 1fr;
+      }
+      .scan-side {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .scan-side {
+        grid-template-columns: 1fr;
+      }
+      .viewfinder {
+        aspect-ratio: 3/4;
+        min-height: 300px;
+      }
+      .capture-actions,
+      .preview-actions {
+        gap: var(--space-4);
+      }
+      .preview-action-btn {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--text-xs);
+      }
+      .camera-live__plate {
+        font-size: 72px;
+      }
+      .preview-view__plate-emoji {
+        font-size: 88px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay"></div>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="app-sidebar">
+    <a href="../magnai/index.html" class="app-sidebar__logo">
+      <div class="app-sidebar__logo-icon">&#127869;</div>
+      <div class="app-sidebar__logo-text">Magn<span>AI</span></div>
+    </a>
+    <nav class="app-sidebar__nav">
+      <a href="../magnai/dashboard.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="#" class="app-sidebar__link app-sidebar__link--active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Scansiona
+      </a>
+      <a href="../magnai/meal-plan.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano Settimanale
+      </a>
+      <div class="app-sidebar__section-title">Account</div>
+      <a href="../magnai/settings.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </a>
+      <a href="../magnai/subscription.html" class="app-sidebar__link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Abbonamento
+      </a>
+    </nav>
+    <div class="app-sidebar__footer">
+      <div class="app-sidebar__user">
+        <div class="app-sidebar__avatar">G</div>
+        <div class="app-sidebar__user-info">
+          <div class="app-sidebar__user-name">Giulia Rossi</div>
+          <div class="app-sidebar__user-email">giulia@email.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Bar Mobile -->
+  <div class="app-bottombar">
+    <nav class="app-bottombar__nav">
+      <a href="../magnai/dashboard.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Home
+      </a>
+      <a href="../magnai/meal-plan.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Piano
+      </a>
+      <a href="#" class="app-bottombar__link app-bottombar__link--scan app-bottombar__link--active">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </a>
+      <a href="../magnai/analysis.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analisi
+      </a>
+      <a href="../magnai/settings.html" class="app-bottombar__link">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profilo
+      </a>
+    </nav>
+  </div>
+
+  <!-- Hidden file input for gallery upload -->
+  <input type="file" id="fileInput" class="file-input-hidden" accept="image/jpeg,image/png">
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="app-main" id="appMain" data-state="idle">
+    <div class="app-main__header animate-fadeInUp">
+      <h1 class="app-main__title">Scansiona Pasto</h1>
+      <p class="app-main__subtitle">Fotografa o carica un'immagine del tuo piatto per l'analisi nutrizionale AI</p>
+    </div>
+
+    <div class="scan-layout">
+      <!-- LEFT -- Viewfinder & Actions -->
+      <div class="animate-fadeInUp delay-1">
+
+        <div class="viewfinder" id="viewfinder">
+          <div class="flash-overlay" id="flashOverlay"></div>
+
+          <!-- STATE: IDLE -- Prompt to start -->
+          <div class="state--idle">
+            <div class="viewfinder__bg"></div>
+            <div class="viewfinder__scan-line"></div>
+            <div class="viewfinder__corners">
+              <div class="viewfinder__corner viewfinder__corner--tl"></div>
+              <div class="viewfinder__corner viewfinder__corner--tr"></div>
+              <div class="viewfinder__corner viewfinder__corner--bl"></div>
+              <div class="viewfinder__corner viewfinder__corner--br"></div>
+            </div>
+            <div class="viewfinder__content">
+              <div class="viewfinder__icon">&#128248;</div>
+              <h3 class="viewfinder__text">Posiziona il piatto nel riquadro</h3>
+              <p class="viewfinder__hint">L'AI analizzer&agrave; ogni componente del pasto</p>
+            </div>
+          </div>
+
+          <!-- STATE: CAPTURING -- Camera live view -->
+          <div class="state--capturing">
+            <div class="camera-live">
+              <div class="camera-live__simulated-feed"></div>
+              <div class="camera-live__rec">
+                <div class="camera-live__rec-dot"></div>
+                Camera attiva
+              </div>
+              <div class="viewfinder__corners">
+                <div class="viewfinder__corner viewfinder__corner--tl"></div>
+                <div class="viewfinder__corner viewfinder__corner--tr"></div>
+                <div class="viewfinder__corner viewfinder__corner--bl"></div>
+                <div class="viewfinder__corner viewfinder__corner--br"></div>
+              </div>
+              <div class="camera-live__plate">&#127837;</div>
+            </div>
+          </div>
+
+          <!-- STATE: PREVIEW -- Image preview before upload -->
+          <div class="state--preview">
+            <div class="preview-view">
+              <div class="preview-view__image-container">
+                <div class="preview-view__plate-emoji" id="previewEmoji">&#127837;</div>
+              </div>
+              <div class="preview-view__badge">
+                <div class="preview-view__badge-dot"></div>
+                Pronta per l'analisi
+              </div>
+              <div class="preview-view__file-info">
+                <div class="preview-view__file-detail">
+                  <span class="preview-view__filename" id="previewFilename">piatto_2026-03-25.jpg</span>
+                  <span class="preview-view__filesize" id="previewFilesize">1.2 MB &rarr; 420 KB (compressa)</span>
+                </div>
+                <span class="preview-view__format-badge" id="previewFormat">JPEG</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- STATE: UPLOADING -- Upload progress -->
+          <div class="state--uploading">
+            <div class="uploading-view">
+              <div class="uploading-view__bg"></div>
+              <div class="upload-particles">
+                <div class="upload-particle"></div>
+                <div class="upload-particle"></div>
+                <div class="upload-particle"></div>
+                <div class="upload-particle"></div>
+                <div class="upload-particle"></div>
+              </div>
+              <div class="upload-progress-ring">
+                <svg viewBox="0 0 120 120">
+                  <circle class="upload-progress-ring__track" cx="60" cy="60" r="54"/>
+                  <circle class="upload-progress-ring__fill" cx="60" cy="60" r="54" id="uploadRingFill"/>
+                </svg>
+                <div class="upload-progress-ring__label">
+                  <span class="upload-progress-ring__percent" id="uploadPercent">0%</span>
+                  <span class="upload-progress-ring__sublabel">Upload</span>
+                </div>
+              </div>
+              <div class="uploading-view__text" style="position:relative;z-index:1;">
+                <h4 class="uploading-view__title">Caricamento su Supabase Storage</h4>
+                <p class="uploading-view__desc">Compressione e upload in corso...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS: Idle & Capturing -->
+        <div class="state--idle">
+          <div class="capture-actions">
+            <div class="capture-secondary" onclick="openGallery()">
+              <div class="capture-secondary__icon">&#128444;&#65039;</div>
+              <span class="capture-secondary__label">Galleria</span>
+            </div>
+            <button class="capture-btn" title="Scatta foto" onclick="startCamera()"></button>
+            <div class="capture-secondary" onclick="startCamera()">
+              <div class="capture-secondary__icon">&#128247;</div>
+              <span class="capture-secondary__label">Fotocamera</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="state--capturing">
+          <div class="capture-actions">
+            <div class="capture-secondary" onclick="cancelCamera()">
+              <div class="capture-secondary__icon">&#10006;</div>
+              <span class="capture-secondary__label">Annulla</span>
+            </div>
+            <button class="capture-btn" title="Scatta foto" onclick="takePhoto()"></button>
+            <div class="capture-secondary">
+              <div class="capture-secondary__icon">&#128260;</div>
+              <span class="capture-secondary__label">Inverti</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS: Preview -->
+        <div class="state--preview">
+          <div class="preview-actions">
+            <button class="preview-action-btn preview-action-btn--discard" onclick="discardPhoto()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Scarta
+            </button>
+            <button class="preview-action-btn preview-action-btn--retake" onclick="retakePhoto()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Riscatta
+            </button>
+            <button class="preview-action-btn preview-action-btn--analyze" onclick="uploadAndAnalyze()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Analizza piatto
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -- Side Panel -->
+      <div class="scan-side">
+        <!-- Drag & Drop zone -->
+        <div class="drop-zone animate-fadeInUp delay-2" id="dropZone" onclick="openGallery()">
+          <span class="drop-zone__icon">&#128228;</span>
+          <p class="drop-zone__text">Trascina qui la tua foto</p>
+          <p class="drop-zone__hint">oppure <span class="drop-zone__link">sfoglia i file</span> dal dispositivo</p>
+        </div>
+
+        <!-- Format support -->
+        <div class="format-info animate-fadeInUp delay-3">
+          <h4 class="format-info__title">&#128444;&#65039; Formati supportati</h4>
+          <div class="format-item">
+            <span class="format-item__label">Formati</span>
+            <span class="format-item__value">JPEG, PNG</span>
+          </div>
+          <div class="format-item">
+            <span class="format-item__label">Dimensione max</span>
+            <span class="format-item__value">10 MB</span>
+          </div>
+          <div class="format-item">
+            <span class="format-item__label">Compressione</span>
+            <span class="format-item__value format-item__value--amber">Automatica lato client</span>
+          </div>
+          <div class="format-item">
+            <span class="format-item__label">Storage</span>
+            <span class="format-item__value">Supabase (autenticato)</span>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="scan-tips animate-fadeInUp delay-4">
+          <h4 class="scan-tips__title">&#128161; Consigli per la foto</h4>
+          <div class="scan-tip">
+            <div class="scan-tip__num">1</div>
+            <p class="scan-tip__text">
+              <strong>Buona illuminazione</strong> &mdash; Luce naturale o ambiente ben illuminato per risultati ottimali
+            </p>
+          </div>
+          <div class="scan-tip">
+            <div class="scan-tip__num">2</div>
+            <p class="scan-tip__text">
+              <strong>Piatto intero</strong> &mdash; Inquadra l'intero piatto dall'alto, mostrando tutti i componenti
+            </p>
+          </div>
+          <div class="scan-tip">
+            <div class="scan-tip__num">3</div>
+            <p class="scan-tip__text">
+              <strong>Senza coperchi</strong> &mdash; Rimuovi coperchi e confezioni per permettere il riconoscimento
+            </p>
+          </div>
+        </div>
+
+        <!-- Compression info -->
+        <div class="compression-info animate-fadeInUp delay-5">
+          <div class="compression-info__header">
+            <span>&#9889;</span>
+            <span class="compression-info__title">Compressione intelligente</span>
+          </div>
+          <p class="compression-info__desc">Le immagini vengono automaticamente ridimensionate e compresse lato client prima dell'upload, mantenendo la qualit&agrave; necessaria per l'analisi AI.</p>
+          <div class="compression-bar">
+            <span class="compression-bar__before">5.2 MB</span>
+            <div class="compression-bar__track">
+              <div class="compression-bar__fill"></div>
+            </div>
+            <span class="compression-bar__after">1.8 MB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ============================================================
+    // US-005: Scan page state machine
+    // States: idle -> capturing -> preview -> uploading -> (redirect to analysis)
+    //         idle -> (file upload) -> preview -> uploading -> ...
+    // ============================================================
+
+    const appMain = document.getElementById('appMain');
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const flashOverlay = document.getElementById('flashOverlay');
+
+    const plates = ['\u{1F35D}', '\u{1F957}', '\u{1F355}', '\u{1F969}', '\u{1F363}', '\u{1F96A}', '\u{1F372}'];
+
+    function setState(state) {
+      appMain.dataset.state = state;
+      // Remove all state classes, add new one
+      appMain.className = 'app-main state-' + state;
+    }
+
+    // --- IDLE STATE ---
+    function openGallery() {
+      fileInput.click();
+    }
+
+    function startCamera() {
+      setState('capturing');
+    }
+
+    // --- CAPTURING STATE ---
+    function cancelCamera() {
+      setState('idle');
+    }
+
+    function takePhoto() {
+      // Flash effect
+      flashOverlay.classList.add('flash-overlay--active');
+      flashOverlay.addEventListener('animationend', function handler() {
+        flashOverlay.classList.remove('flash-overlay--active');
+        flashOverlay.removeEventListener('animationend', handler);
+      });
+
+      // Simulate capture delay
+      setTimeout(function() {
+        const randomPlate = plates[Math.floor(Math.random() * plates.length)];
+        document.getElementById('previewEmoji').textContent = randomPlate;
+        document.getElementById('previewFilename').textContent = 'scatto_' + new Date().toISOString().slice(0, 10) + '.jpg';
+        document.getElementById('previewFilesize').textContent = '3.1 MB \u2192 890 KB (compressa)';
+        document.getElementById('previewFormat').textContent = 'JPEG';
+        setState('preview');
+      }, 500);
+    }
+
+    // --- FILE INPUT (gallery upload) ---
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const ext = file.name.split('.').pop().toUpperCase();
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      const compressedKB = Math.round(file.size * 0.35 / 1024);
+
+      document.getElementById('previewFilename').textContent = file.name;
+      document.getElementById('previewFilesize').textContent = sizeMB + ' MB \u2192 ' + compressedKB + ' KB (compressa)';
+      document.getElementById('previewFormat').textContent = ext === 'JPG' ? 'JPEG' : ext;
+
+      const randomPlate = plates[Math.floor(Math.random() * plates.length)];
+      document.getElementById('previewEmoji').textContent = randomPlate;
+
+      setState('preview');
+      fileInput.value = '';
+    });
+
+    // --- DRAG & DROP ---
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('drop-zone--dragover');
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+      dropZone.classList.remove('drop-zone--dragover');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('drop-zone--dragover');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      // Validate format
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        alert('Formato non supportato. Usa JPEG o PNG.');
+        return;
+      }
+
+      const ext = file.name.split('.').pop().toUpperCase();
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      const compressedKB = Math.round(file.size * 0.35 / 1024);
+
+      document.getElementById('previewFilename').textContent = file.name;
+      document.getElementById('previewFilesize').textContent = sizeMB + ' MB \u2192 ' + compressedKB + ' KB (compressa)';
+      document.getElementById('previewFormat').textContent = ext === 'JPG' ? 'JPEG' : ext;
+
+      const randomPlate = plates[Math.floor(Math.random() * plates.length)];
+      document.getElementById('previewEmoji').textContent = randomPlate;
+
+      setState('preview');
+    });
+
+    // --- PREVIEW STATE ---
+    function discardPhoto() {
+      setState('idle');
+    }
+
+    function retakePhoto() {
+      setState('capturing');
+    }
+
+    function uploadAndAnalyze() {
+      setState('uploading');
+
+      // Animate upload percent
+      const percentEl = document.getElementById('uploadPercent');
+      let progress = 0;
+      const interval = setInterval(function() {
+        progress += Math.random() * 8 + 2;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          percentEl.textContent = '100%';
+          // Simulate redirect after complete
+          setTimeout(function() {
+            // In production: window.location.href = '/analysis'
+            alert('Upload completato! Reindirizzamento all\'analisi nutrizionale...');
+            setState('idle');
+          }, 800);
+        }
+        percentEl.textContent = Math.round(progress) + '%';
+      }, 120);
+    }
+
+    // Initialize
+    setState('idle');
+  </script>
+</body>
+</html>
