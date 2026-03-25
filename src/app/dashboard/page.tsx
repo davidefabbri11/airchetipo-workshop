@@ -36,12 +36,18 @@ export default async function Dashboard() {
           <p className="text-muted-foreground text-sm">
             This is a protected page. Only authenticated users can see this.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/scan"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
+            >
+              Scatta foto piatto
+            </Link>
             <Link
               href="/"
               className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium"
             >
-              Back to Home
+              Home
             </Link>
             <form action="/auth/signout" method="post">
               <button
