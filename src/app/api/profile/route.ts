@@ -122,13 +122,17 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const updatedProfile = await prisma.profile.update({
-    where: { userId: dbUser.id },
-    data: {
-      targetCalories: result.data.targetCalories,
-      goalDescription: result.data.goalDescription,
-    },
-  });
-
-  return NextResponse.json(updatedProfile);
+  try {
+    const updatedProfile = await prisma.profile.update({
+      where: { userId: dbUser.id },
+      data: {
+        targetCalories: result.data.targetCalories,
+        goalDescription: result.data.goalDescription,
+      },
+    });
+    return NextResponse.json(updatedProfile);
+  } catch (err) {
+    console.error("[PATCH /api/profile]", err);
+    return NextResponse.json({ error: "Errore interno del server" }, { status: 500 });
+  }
 }
