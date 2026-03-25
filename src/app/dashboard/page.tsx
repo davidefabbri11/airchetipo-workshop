@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserWithProfile } from "@/lib/user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CalorieChart } from "@/components/dashboard/calorie-chart";
 
 export default async function Dashboard() {
   const user = await getCurrentUserWithProfile();
@@ -49,6 +50,12 @@ export default async function Dashboard() {
             >
               Home
             </Link>
+            <Link
+              href="/history"
+              className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-10 items-center justify-center rounded-md border px-4 py-2 text-sm font-medium"
+            >
+              Storico pasti
+            </Link>
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
@@ -60,6 +67,10 @@ export default async function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="w-full max-w-2xl">
+        <CalorieChart />
+      </div>
     </div>
   );
 }

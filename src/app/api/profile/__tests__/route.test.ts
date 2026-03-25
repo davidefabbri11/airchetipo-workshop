@@ -5,11 +5,12 @@ import { profileSchema } from "@/lib/validations/profile";
 // ---------------------------------------------------------------------------
 // Hoisted mocks (vi.hoisted ensures these are available before vi.mock)
 // ---------------------------------------------------------------------------
-const { mockGetUser, mockUserFindUnique, mockProfileCreate } = vi.hoisted(
+const { mockGetUser, mockUserFindUnique, mockProfileCreate, mockProfileUpdate } = vi.hoisted(
   () => ({
     mockGetUser: vi.fn(),
     mockUserFindUnique: vi.fn(),
     mockProfileCreate: vi.fn(),
+    mockProfileUpdate: vi.fn(),
   })
 );
 
@@ -28,6 +29,7 @@ vi.mock("@/lib/prisma", () => ({
     },
     profile: {
       create: (...args: unknown[]) => mockProfileCreate(...args),
+      update: (...args: unknown[]) => mockProfileUpdate(...args),
     },
   },
 }));

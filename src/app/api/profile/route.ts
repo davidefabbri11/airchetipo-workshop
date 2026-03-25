@@ -85,6 +85,11 @@ export async function POST(request: Request) {
   return NextResponse.json(profile, { status: 201 });
 }
 
+const patchProfileSchema = profileSchema
+  .merge(selectedGoalSchema)
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, "Almeno un campo è richiesto");
+
 export async function PATCH(request: Request) {
   const supabase = await createClient();
   const {
@@ -114,7 +119,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const result = selectedGoalSchema.safeParse(body);
+  const result = patchProfileSchema.safeParse(body);
 
   if (!result.success) {
     return NextResponse.json(
@@ -123,17 +128,10 @@ export async function PATCH(request: Request) {
     );
   }
 
-  try {
-    const updatedProfile = await prisma.profile.update({
-      where: { userId: dbUser.id },
-      data: {
-        targetCalories: result.data.targetCalories,
-        goalDescription: result.data.goalDescription,
-      },
-    });
-    return NextResponse.json(updatedProfile);
-  } catch (err) {
-    console.error("[PATCH /api/profile]", err);
-    return NextResponse.json({ error: "Errore interno del server" }, { status: 500 });
-  }
+  const updatedProfile = await prisma.profile.update({
+    where: { userId: dbUser.id },
+    data: result.data,
+  });
+
+  return NextResponse.json(updatedProfile);
 }
