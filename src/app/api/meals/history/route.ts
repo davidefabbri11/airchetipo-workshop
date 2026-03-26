@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { MealStatus } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -46,14 +47,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-  });
-
-  if (!dbUser) {
-    return NextResponse.json({ error: "Utente non trovato" }, { status: 404 });
-  }
-
   const { searchParams } = request.nextUrl;
   const rawParams = {
     period: searchParams.get("period") ?? undefined,
@@ -77,10 +70,18 @@ export async function GET(request: NextRequest) {
   const periodStart = getPeriodStartDate(period);
 
   try {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ error: "Utente non trovato" }, { status: 404 });
+    }
+
     const meals = await prisma.meal.findMany({
       where: {
         userId: dbUser.id,
-        status: "ANALYZED",
+        status: MealStatus.ANALYZED,
         createdAt: { gte: periodStart },
       },
       include: { components: true },
